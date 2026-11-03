@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tablero de satisfacción</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -24,11 +24,14 @@
   h2{font-size:15px;font-weight:600;margin:28px 0 10px;color:var(--acento)}
   .filtros{display:flex;gap:12px;flex-wrap:wrap;align-items:end;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:12px 14px}
   .filtros label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+  .fechas{border:0;padding:0;margin:0;display:flex;gap:12px;flex-wrap:wrap;min-width:0}
+  .fechas legend{font-size:12px;color:var(--muted);padding:0;margin-bottom:4px}
+  .fechas label{flex:1 1 130px}
   input,select,button{font:inherit;padding:8px 9px;border-radius:6px;border:1px solid #cbd0d8;background:#fff;color:var(--texto);max-width:100%}
-  input,select{font-size:16px} /* 16px evita el zoom automático en iPhone */
+  input,select{font-size:16px}
   button{background:var(--acento);color:#fff;border:0;cursor:pointer}
   button:hover{opacity:.9}
-  .estado-txt{color:var(--muted);font-size:12px;align-self:center}
+  .estado-txt{color:var(--rojo);font-size:12px;align-self:center}
   .tabs{display:flex;gap:4px;margin-top:20px;border-bottom:1px solid var(--borde)}
   .tab{background:transparent;color:var(--muted);border:0;border-bottom:2px solid transparent;border-radius:0;padding:10px 16px;font-weight:600}
   .tab.activo{color:var(--acento);border-bottom-color:var(--acento)}
@@ -52,8 +55,11 @@
   .prioridad{background:var(--tarjeta);border:1px solid var(--borde);border-left:4px solid var(--acento);border-radius:10px;padding:12px 16px;margin-bottom:12px}
   .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:14px}
   .charts .card{height:320px}
+  .card.ancho{height:340px}
   canvas{max-width:100%}
   .nota{font-size:12px;color:var(--muted);margin:8px 0 0}
+  details.card summary{cursor:pointer;font-weight:600;color:var(--acento);list-style-position:inside}
+  .lista-comentarios{max-height:420px;overflow-y:auto;margin-top:12px;padding-right:6px}
   .comentario{border-bottom:1px solid var(--borde);padding:10px 0}
   .comentario:last-child{border-bottom:0}
   .comentario .meta{font-size:12px;color:var(--muted);margin-bottom:4px}
@@ -63,21 +69,6 @@
   .login h2{margin:0 0 6px}
   .err{color:var(--rojo);min-height:1.2em;font-size:13px}
 
-  /* Modo presentación */
-  .salir{position:fixed;top:12px;right:16px;z-index:10;background:#fff;color:var(--acento);border:1px solid var(--borde)}
-  .contador{position:fixed;bottom:12px;right:16px;z-index:10;background:rgba(0,0,0,.55);color:#fff;padding:4px 10px;border-radius:999px;font-size:13px}
-  @keyframes entra{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  body.presentando header, body.presentando .filtros, body.presentando .tabs{display:none}
-  body.presentando #tab-tablero > :not(.slide), body.presentando #tab-comunidad > :not(.slide){display:none}
-  body.presentando .slide{display:none}
-  body.presentando .slide.activa{display:block;animation:entra .5s ease}
-  body.presentando main{max-width:1100px;padding:24px 32px}
-  body.presentando h2{font-size:22px;margin-top:0}
-  body.presentando .valor{font-size:52px}
-  body.presentando .grid-kpi{grid-template-columns:repeat(2,1fr)}
-  body.presentando .card{padding:20px}
-  body.presentando .charts .card{height:62vh}
-
   /* Celular */
   @media (max-width:640px){
     header{padding:12px 14px}
@@ -86,8 +77,10 @@
     main{padding:12px 10px}
     h2{font-size:15px;margin:22px 0 8px}
     .filtros{gap:8px;padding:10px;display:grid;grid-template-columns:1fr 1fr}
-    .filtros label{width:100%}
-    .filtros input,.filtros select{width:100%}
+    .filtros > label{grid-column:1 / -1}
+    .fechas{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .fechas label{flex:none}
+    .filtros select,.filtros input{width:100%}
     .filtros button{grid-column:1 / -1;width:100%}
     .estado-txt{grid-column:1 / -1;align-self:auto}
     .tabs{margin-top:14px}
@@ -98,17 +91,12 @@
     .sub{font-size:11px}
     .charts{grid-template-columns:1fr;gap:10px}
     .charts .card{height:270px}
+    .card.ancho{height:270px}
     th,td{padding:8px 9px;font-size:12px;white-space:nowrap}
     .prioridad{font-size:13px}
     .buscar{flex-basis:100%}
     .barra-acciones button{width:100%}
     .login{margin:40px 14px}
-    .salir{top:8px;right:8px}
-    .contador{bottom:8px;right:8px}
-    body.presentando main{padding:12px}
-    body.presentando .grid-kpi{grid-template-columns:1fr 1fr}
-    body.presentando .valor{font-size:40px}
-    body.presentando .charts .card{height:58vh}
   }
 
   @media (prefers-color-scheme: dark){
@@ -119,7 +107,7 @@
     .tab.activo{color:var(--acento)}
     th{background:#111827}
     input,select{background:#111827;color:#f3f4f6;border-color:#4b5563}
-    .salir{color:var(--acento);background:#1f2937}
+    details.card summary{color:var(--acento)}
   }
 </style>
 </head>
@@ -136,7 +124,7 @@
 <div id="app" hidden>
   <header>
     <h1>Encuesta de experiencia · Tablero para decisiones</h1>
-    <p>Cada pregunta se califica de 1 (muy malo) a 5 (excelente).</p>
+    <p>Cada pregunta se califica de 1 (muy malo) a 5 (excelente). <span id="actualizado"></span></p>
   </header>
   <main>
     <div class="filtros">
@@ -147,10 +135,12 @@
           <option value="2">Local 2</option>
         </select>
       </label>
-      <label>Desde <input type="date" id="desde"></label>
-      <label>Hasta <input type="date" id="hasta"></label>
+      <fieldset class="fechas">
+        <legend>Fechas</legend>
+        <label>Desde <input type="date" id="desde"></label>
+        <label>Hasta <input type="date" id="hasta"></label>
+      </fieldset>
       <button id="actualizar">Actualizar datos</button>
-      <button id="presentar">Modo presentación</button>
       <span id="estado" class="estado-txt"></span>
     </div>
 
@@ -161,58 +151,47 @@
 
     <!-- PESTAÑA TABLERO -->
     <section id="tab-tablero">
-      <div class="slide">
-        <h2>Estado general</h2>
-        <div class="grid-kpi">
-          <div class="card"><h3>Respuestas</h3><div class="valor" id="kTotal">-</div><div class="sub" id="kTotalSub"></div></div>
-          <div class="card"><h3>Satisfacción general <span class="nota">(de 1 a 5)</span></h3><div class="valor" id="kIndice">-</div><div class="sub" id="kIndiceEst"></div></div>
-          <div class="card"><h3>¿Recomendarían el local? <span class="nota">(de -100 a 100)</span></h3><div class="valor" id="kNps">-</div><div class="sub" id="kNpsEst"></div></div>
-          <div class="card"><h3>Clientes muy satisfechos <span class="nota">(% que dio 4 o 5)</span></h3><div class="valor" id="kTop2">-</div><div class="sub" id="kTop2Est"></div></div>
-        </div>
+      <h2>Estado general</h2>
+      <div class="grid-kpi">
+        <div class="card"><h3>Respuestas</h3><div class="valor" id="kTotal">-</div><div class="sub" id="kTotalSub"></div></div>
+        <div class="card"><h3>Satisfacción general <span class="nota">(de 1 a 5)</span></h3><div class="valor" id="kIndice">-</div><div class="sub" id="kIndiceEst"></div></div>
+        <div class="card"><h3>¿Recomendarían el local? <span class="nota">(de -100 a 100)</span></h3><div class="valor" id="kNps">-</div><div class="sub" id="kNpsEst"></div></div>
+        <div class="card"><h3>Clientes muy satisfechos <span class="nota">(% que dio 4 o 5)</span></h3><div class="valor" id="kTop2">-</div><div class="sub" id="kTop2Est"></div></div>
       </div>
 
-      <div class="slide">
-        <h2>¿Qué mejorar primero?</h2>
-        <div class="prioridad" id="prioridad">-</div>
-        <div class="tabla-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Aspecto</th>
-                <th class="num">Puntaje (de 1 a 5)</th>
-                <th class="num">Local 1</th>
-                <th class="num">Local 2</th>
-                <th class="num">% que quedó insatisfecho</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="tablaDim"></tbody>
-          </table>
-        </div>
-        <p class="nota">Ordenado de menor a mayor puntaje. "Insatisfecho" significa que el cliente puso 1 o 2. El estado se decide según el puntaje (ver al final de la página).</p>
+      <h2>¿Qué mejorar primero?</h2>
+      <div class="prioridad" id="prioridad">-</div>
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Aspecto</th>
+              <th class="num">Puntaje (de 1 a 5)</th>
+              <th class="num">Local 1</th>
+              <th class="num">Local 2</th>
+              <th class="num">% que quedó insatisfecho</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tablaDim"></tbody>
+        </table>
+      </div>
+      <p class="nota">Ordenado de menor a mayor puntaje. "Insatisfecho" significa que el cliente puso 1 o 2. El estado se decide según el puntaje (ver al final de la página).</p>
+
+      <h2>Evolución</h2>
+      <div class="card ancho"><canvas id="cTrend"></canvas></div>
+
+      <h2>Contexto de visita</h2>
+      <div class="charts">
+        <div class="card"><canvas id="cMotivo"></canvas></div>
+        <div class="card"><canvas id="cHora"></canvas></div>
       </div>
 
-      <div class="slide">
-        <h2>¿Cómo se reparten las respuestas?</h2>
-        <div class="charts">
-          <div class="card"><canvas id="cDist"></canvas></div>
-          <div class="card"><canvas id="cTrend"></canvas></div>
-        </div>
-        <p class="nota">Rojo = insatisfecho (1 o 2), gris = término medio (3), verde = satisfecho (4 o 5). En el gráfico de la derecha, cuanto más alto, mejor.</p>
-      </div>
-
-      <div class="slide">
-        <h2>Contexto de visita</h2>
-        <div class="charts">
-          <div class="card"><canvas id="cMotivo"></canvas></div>
-          <div class="card"><canvas id="cHora"></canvas></div>
-        </div>
-      </div>
-
-      <div class="slide">
-        <h2>Comentarios recientes</h2>
-        <div class="card" id="comentarios"></div>
-      </div>
+      <h2>Comentarios</h2>
+      <details class="card">
+        <summary id="sumComentarios">Comentarios · tocá para ver</summary>
+        <div class="lista-comentarios" id="comentarios"></div>
+      </details>
 
       <h2>¿Cómo se decide el color?</h2>
       <div class="card">
@@ -225,19 +204,15 @@
 
     <!-- PESTAÑA COMUNIDAD -->
     <section id="tab-comunidad" hidden>
-      <div class="slide">
-        <h2>¿Quiénes forman la comunidad?</h2>
-        <div class="grid-kpi">
-          <div class="card"><h3>Personas con correo</h3><div class="valor" id="cKContactos">-</div><div class="sub" id="cKContactosSub"></div></div>
-          <div class="card"><h3>Respuestas que dejaron correo</h3><div class="valor" id="cKRespuestas">-</div><div class="sub" id="cKRespuestasSub"></div></div>
-        </div>
+      <h2>¿Quiénes forman la comunidad?</h2>
+      <div class="grid-kpi">
+        <div class="card"><h3>Personas con correo</h3><div class="valor" id="cKContactos">-</div><div class="sub" id="cKContactosSub"></div></div>
+        <div class="card"><h3>Respuestas que dejaron correo</h3><div class="valor" id="cKRespuestas">-</div><div class="sub" id="cKRespuestasSub"></div></div>
       </div>
 
-      <div class="slide">
-        <h2>¿Qué les gusta para la merienda?</h2>
-        <div class="card" style="height:340px"><canvas id="cMerienda"></canvas></div>
-        <p class="nota">Cada respuesta puede tener más de una opción. El gráfico cuenta cada opción elegida.</p>
-      </div>
+      <h2>¿Qué les gusta para la merienda?</h2>
+      <div class="card ancho"><canvas id="cMerienda"></canvas></div>
+      <p class="nota">Cada respuesta puede tener más de una opción. El gráfico cuenta cada opción elegida.</p>
 
       <h2>Lista de contactos</h2>
       <div class="barra-acciones">
@@ -256,9 +231,6 @@
     </section>
   </main>
 </div>
-
-<button id="salirPres" class="salir" hidden>Salir ✕</button>
-<div id="contador" class="contador" hidden></div>
 
 <script>
 const ENDPOINTS = {
@@ -283,7 +255,6 @@ const DIMENSIONES = [
 // PALETA
 const COLOR = {
   rojo:   "#e0736b",
-  gris:   "#d1d5db",
   verde:  "#7fbf8e",
   local1: "#1e3a5f",
   local2: "#5b8fc7",
@@ -291,14 +262,12 @@ const COLOR = {
 };
 
 const REFRESCO_MS = 5 * 60 * 1000;
-const PRESENTACION_MS = 12 * 1000;
 
 let CLAVE = "";
 let DATOS = [];
 let CONTACTOS = [];
 let TAB = "tablero";
 let refrescoTimer = null;
-let presActiva = false, presIdx = 0, presTimer = null;
 const charts = {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -433,7 +402,7 @@ function renderTablero(f, base){
       l: d.l, prom,
       l1: promedio(f.filter(r=>r.local===1).map(r=>r[d.k])),
       l2: promedio(f.filter(r=>r.local===2).map(r=>r[d.k])),
-      insat, vs
+      insat
     };
   }).sort((a,b) => (a.prom ?? 99) - (b.prom ?? 99));
 
@@ -452,35 +421,6 @@ function renderTablero(f, base){
       <td>${badge(estado(x.prom, UMBRAL.indice))}</td>
     </tr>`).join("");
 
-  const dist = filas.map(x => {
-    const n = x.vs.length;
-    return {
-      l: x.l,
-      bajo: pct(x.vs.filter(v => v <= 2).length, n) ?? 0,
-      neutro: pct(x.vs.filter(v => v === 3).length, n) ?? 0,
-      alto: pct(x.vs.filter(v => v >= 4).length, n) ?? 0
-    };
-  });
-  grafico("cDist", {
-    type:"bar",
-    data:{
-      labels: dist.map(x => x.l),
-      datasets:[
-        { label:"Insatisfecho (1 o 2)", data: dist.map(x => x.bajo),   backgroundColor: COLOR.rojo },
-        { label:"Término medio (3)",    data: dist.map(x => x.neutro), backgroundColor: COLOR.gris },
-        { label:"Satisfecho (4 o 5)",   data: dist.map(x => x.alto),   backgroundColor: COLOR.verde }
-      ]
-    },
-    options:{
-      indexAxis:"y",
-      scales:{
-        x:{ stacked:true, max:100, title:{ display:true, text:"% de clientes" } },
-        y:{ stacked:true, ticks:{ font:{ size: esCelular() ? 10 : 12 } } }
-      },
-      plugins:{ title:{ display:true, text:"¿Cómo calificó cada cliente cada aspecto?" } }
-    }
-  });
-
   const dias = [...new Set(base.map(r => r.dia))].sort();
   const serie = l => dias.map(d => redondo(promedio(f.filter(r => r.local === l && r.dia === d).map(r => r.indice))));
   const datasets = [];
@@ -491,7 +431,7 @@ function renderTablero(f, base){
     data:{ labels: dias, datasets },
     options:{
       scales:{ y: escala15 },
-      plugins:{ title:{ display:true, text:"¿Cómo viene la satisfacción día por día?" } }
+      plugins:{ title:{ display:true, text:"¿Cómo evoluciona la satisfacción día por día?" } }
     }
   });
 
@@ -512,8 +452,8 @@ function renderTablero(f, base){
   });
 
   const coment = f.filter(r => r.comentario)
-    .sort((a,b) => (b.dia + pad2(b.hora)).localeCompare(a.dia + pad2(a.hora)))
-    .slice(0, 10);
+    .sort((a,b) => (b.dia + pad2(b.hora)).localeCompare(a.dia + pad2(a.hora)));
+  $("sumComentarios").textContent = `Comentarios (${coment.length}) · tocá para ver`;
   $("comentarios").innerHTML = coment.length
     ? coment.map(r => `<div class="comentario">
         <div class="meta">Local ${r.local} · ${r.dia} ${pad2(r.hora)}h · satisfacción ${fmt(r.indice)}</div>
@@ -579,59 +519,8 @@ function descargarCSV(){
   URL.revokeObjectURL(a.href);
 }
 
-// MODO PRESENTACIÓN
-function slidesActuales(){ return [...document.querySelectorAll(`#tab-${TAB} .slide`)]; }
-function mostrarSlide(i){
-  const s = slidesActuales();
-  if (!s.length) return;
-  presIdx = (i + s.length) % s.length;
-  s.forEach((el, k) => el.classList.toggle("activa", k === presIdx));
-  $("contador").textContent = `${presIdx + 1} / ${s.length}`;
-  Object.values(charts).forEach(c => c.resize());
-}
-function siguiente(){ mostrarSlide(presIdx + 1); }
-function anterior(){ mostrarSlide(presIdx - 1); }
-
-function iniciarPresentacion(){
-  presActiva = true;
-  document.body.classList.add("presentando");
-  $("contador").hidden = false;
-  $("salirPres").hidden = false;
-  mostrarSlide(0);
-  clearInterval(presTimer);
-  presTimer = setInterval(siguiente, PRESENTACION_MS);
-  const el = document.documentElement;
-  if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-}
-
-function salirPresentacion(){
-  if (!presActiva) return;
-  presActiva = false;
-  clearInterval(presTimer);
-  document.body.classList.remove("presentando");
-  document.querySelectorAll(".slide").forEach(s => s.classList.remove("activa"));
-  $("contador").hidden = true;
-  $("salirPres").hidden = true;
-  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
-  Object.values(charts).forEach(c => c.resize());
-}
-
-document.addEventListener("fullscreenchange", () => {
-  if (!document.fullscreenElement && presActiva) salirPresentacion();
-});
-document.addEventListener("keydown", e => {
-  if (!presActiva) return;
-  if (e.key === "ArrowRight") siguiente();
-  else if (e.key === "ArrowLeft") anterior();
-  else if (e.key === "Escape") salirPresentacion();
-});
-document.addEventListener("click", e => {
-  if (presActiva && !e.target.closest("button")) siguiente();
-});
-
-// CARGA DE DATOS Y ACTUALIZACIÓN AUTOMÁTICA
 async function cargar(esLogin){
-  $("estado").textContent = "Cargando datos...";
+  $("estado").textContent = "";
   try {
     const partes = await Promise.all([1,2].map(async l => {
       const r = await fetch(`${ENDPOINTS[l]}?clave=${encodeURIComponent(CLAVE)}`);
@@ -643,12 +532,12 @@ async function cargar(esLogin){
     $("login").hidden = true;
     $("app").hidden = false;
     $("clave").value = "";
-    $("estado").textContent = `${DATOS.length} respuestas · actualizado ${horaActual()} · se actualiza solo cada 5 min`;
+    $("actualizado").textContent = `Última actualización: ${horaActual()}.`;
     render();
     if (!refrescoTimer) refrescoTimer = setInterval(() => cargar(false), REFRESCO_MS);
   } catch (e) {
     if (esLogin) $("loginErr").textContent = e.message === "no autorizado" ? "Clave incorrecta." : "No se pudieron cargar los datos: " + e.message;
-    else $("estado").textContent = "No se pudo actualizar (" + horaActual() + "). Reintenta en 5 min o toca Actualizar datos.";
+    else $("estado").textContent = "No se pudo actualizar. Reintenta en unos minutos.";
   }
 }
 
@@ -663,14 +552,11 @@ document.querySelectorAll(".tab").forEach(b => {
   };
 });
 
-// Si cambia el tamaño de la pantalla (girar el celular), redibujar
 window.addEventListener("resize", () => { if (DATOS.length) render(); });
 
 $("entrar").onclick = () => { CLAVE = $("clave").value; $("loginErr").textContent = ""; cargar(true); };
 $("clave").addEventListener("keydown", e => { if (e.key === "Enter") $("entrar").click(); });
 $("actualizar").onclick = () => cargar(false);
-$("presentar").onclick = iniciarPresentacion;
-$("salirPres").onclick = salirPresentacion;
 $("descargar").onclick = descargarCSV;
 $("buscar").addEventListener("input", renderTablaContactos);
 ["local","desde","hasta"].forEach(id => $(id).addEventListener("change", render));
