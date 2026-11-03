@@ -65,7 +65,7 @@
 
 <div id="login" class="login">
   <h2>Tablero de satisfacción</h2>
-  <p class="nota">Ingresá la clave</p>
+  <p class="nota">Ingresá la clave para ver el tablero.</p>
   <input id="clave" type="password" placeholder="Clave" style="width:100%">
   <p><button id="entrar" style="width:100%;margin-top:10px">Entrar</button></p>
   <p id="loginErr" class="err"></p>
@@ -74,7 +74,7 @@
 <div id="app" hidden>
   <header>
     <h1>Encuesta de experiencia · Tablero para decisiones</h1>
-    <p>Escala de todas las preguntas: 1 = muy malo, 5 = excelente. NPS: de -100 a 100.</p>
+    <p>Cada pregunta se califica de 1 (muy malo) a 5 (excelente).</p>
   </header>
   <main>
     <div class="filtros">
@@ -94,34 +94,34 @@
     <h2>Estado general</h2>
     <div class="grid-kpi">
       <div class="card"><h3>Respuestas</h3><div class="valor" id="kTotal">-</div><div class="sub" id="kTotalSub"></div></div>
-      <div class="card"><h3>Índice general <span class="nota">(1-5)</span></h3><div class="valor" id="kIndice">-</div><div class="sub" id="kIndiceEst"></div></div>
-      <div class="card"><h3>NPS</h3><div class="valor" id="kNps">-</div><div class="sub" id="kNpsEst"></div></div>
-      <div class="card"><h3>Top-2-box <span class="nota">(% de 4 y 5)</span></h3><div class="valor" id="kTop2">-</div><div class="sub" id="kTop2Est"></div></div>
+      <div class="card"><h3>Satisfacción general <span class="nota">(de 1 a 5)</span></h3><div class="valor" id="kIndice">-</div><div class="sub" id="kIndiceEst"></div></div>
+      <div class="card"><h3>¿Recomendarían el local? <span class="nota">(de -100 a 100)</span></h3><div class="valor" id="kNps">-</div><div class="sub" id="kNpsEst"></div></div>
+      <div class="card"><h3>Clientes muy satisfechos <span class="nota">(% que dio 4 o 5)</span></h3><div class="valor" id="kTop2">-</div><div class="sub" id="kTop2Est"></div></div>
     </div>
 
-    <h2>Dónde actuar</h2>
+    <h2>Qué mejorar primero</h2>
     <div class="prioridad" id="prioridad">-</div>
     <table>
       <thead>
         <tr>
-          <th>Dimensión</th>
-          <th class="num">Promedio (1-5)</th>
+          <th>Aspecto</th>
+          <th class="num">Puntaje (de 1 a 5)</th>
           <th class="num">Local 1</th>
           <th class="num">Local 2</th>
-          <th class="num">% insatisfechos (1-2)</th>
+          <th class="num">% que quedó insatisfecho</th>
           <th>Estado</th>
         </tr>
       </thead>
       <tbody id="tablaDim"></tbody>
     </table>
-    <p class="nota">Ordenado de menor a mayor puntaje. Insatisfecho = puntaje 1 o 2. Estado según el promedio general de la dimensión (ver umbrales abajo).</p>
+    <p class="nota">Ordenado de menor a mayor puntaje. "Insatisfecho" significa que el cliente puso 1 o 2. El estado se decide según el puntaje (ver al final de la página).</p>
 
-    <h2>Distribución de respuestas</h2>
+    <h2>Cómo se reparten las respuestas</h2>
     <div class="charts">
       <div class="card"><canvas id="cDist"></canvas></div>
       <div class="card"><canvas id="cTrend"></canvas></div>
     </div>
-    <p class="nota">Distribución: rojo = 1-2 (insatisfecho), gris = 3 (neutral), verde = 4-5 (satisfecho). Tendencia: promedio del índice general por día, escala 1 a 5.</p>
+    <p class="nota">Rojo = insatisfecho (1 o 2), gris = término medio (3), verde = satisfecho (4 o 5). En el gráfico de la derecha, cuanto más alto, mejor.</p>
 
     <h2>Contexto de visita</h2>
     <div class="charts">
@@ -132,12 +132,12 @@
     <h2>Comentarios recientes</h2>
     <div class="card" id="comentarios"></div>
 
-    <h2>Umbrales del semáforo</h2>
+    <h2>Cómo se decide el color</h2>
     <div class="card">
-      <p class="nota" style="margin:0"><strong>Índice general y dimensiones:</strong> verde desde 4.20, amarillo desde 3.50, rojo debajo de 3.50.<br>
-      <strong>NPS:</strong> verde desde 50, amarillo desde 0, rojo debajo de 0. Se calcula como % promotores (9-10) menos % detractores (0-6).<br>
-      <strong>Top-2-box:</strong> verde desde 80%, amarillo desde 60%, rojo debajo de 60%.<br>
-      Estos valores son una propuesta y se pueden cambiar en la sección UMBRALES del código.</p>
+      <p class="nota" style="margin:0"><strong>Satisfacción general y cada aspecto:</strong> verde desde 4.20, amarillo desde 3.50, rojo debajo de 3.50.<br>
+      <strong>¿Recomendarían el local?:</strong> verde desde 50, amarillo desde 0, rojo debajo de 0. Se calcula restando los clientes que no lo recomendarían a los que sí.<br>
+      <strong>Clientes muy satisfechos:</strong> verde desde 80%, amarillo desde 60%, rojo debajo de 60%.<br>
+      Estos valores son una propuesta y se pueden cambiar en la sección UMBRAL del código.</p>
     </div>
   </main>
 </div>
@@ -148,7 +148,7 @@ const ENDPOINTS = {
   2: "https://script.google.com/macros/s/AKfycbzTGWBojRrsuEXgSbJJTHE-LuzaVYW0KIGTpdzDtZ1NSTKMOefppHr5_FK-z1Oav3hr/exec"
 };
 
-// UMBRALES (editables)
+// UMBRAL (editables)
 const UMBRAL = {
   indice: { verde: 4.2, amarillo: 3.5 },
   nps:    { verde: 50,  amarillo: 0 },
@@ -260,7 +260,7 @@ function deepMerge(a, b){
   }
   return out;
 }
-const escala15 = { min:1, max:5, ticks:{ stepSize:1 }, title:{ display:true, text:"Promedio (1 = muy malo, 5 = excelente)" } };
+const escala15 = { min:1, max:5, ticks:{ stepSize:1 }, title:{ display:true, text:"Puntaje (1 = muy malo, 5 = excelente)" } };
 
 function render(){
   const f = filtrar();
@@ -268,12 +268,12 @@ function render(){
 
   // Estado general
   $("kTotal").textContent = f.length;
-  $("kTotalSub").textContent = $("local").value === "ambos" ? `L1: ${f.filter(r=>r.local===1).length} · L2: ${f.filter(r=>r.local===2).length}` : "";
+  $("kTotalSub").textContent = $("local").value === "ambos" ? `Local 1: ${f.filter(r=>r.local===1).length} · Local 2: ${f.filter(r=>r.local===2).length}` : "";
 
   const indice = promedio(f.map(r => r.indice));
   const eI = estado(indice, UMBRAL.indice);
   $("kIndice").innerHTML = `${fmt(indice)}`;
-  $("kIndiceEst").innerHTML = badge(eI) + " umbral verde 4.20";
+  $("kIndiceEst").innerHTML = badge(eI) + " bueno desde 4.20";
 
   const conNps = f.filter(r => r.nps != null);
   let npsVal = null;
@@ -292,7 +292,7 @@ function render(){
   $("kTop2").textContent = top2 == null ? "-" : top2 + "%";
   $("kTop2Est").innerHTML = badge(eT);
 
-  // Dónde actuar
+  // Qué mejorar primero
   const filas = DIMENSIONES.map(d => {
     const vs = f.map(r => r[d.k]).filter(v => v != null);
     const prom = promedio(vs);
@@ -307,8 +307,8 @@ function render(){
 
   const peor = filas.find(x => x.prom != null);
   $("prioridad").innerHTML = peor
-    ? `<strong>Prioridad 1: ${esc(peor.l)}</strong> con promedio ${fmt(peor.prom)} (${badge(estado(peor.prom, UMBRAL.indice))}). ${peor.insat != null ? peor.insat + "% de las respuestas son insatisfechas en esta dimensión." : ""}`
-    : "Sin datos suficientes para priorizar.";
+    ? `<strong>Mejorar primero: ${esc(peor.l)}</strong>, con un puntaje de ${fmt(peor.prom)} (${badge(estado(peor.prom, UMBRAL.indice))}). ${peor.insat != null ? peor.insat + "% de los clientes quedó insatisfecho en este aspecto." : ""}`
+    : "Todavía no hay datos suficientes para decidir.";
 
   $("tablaDim").innerHTML = filas.map(x => `
     <tr>
@@ -335,22 +335,22 @@ function render(){
     data:{
       labels: dist.map(x => x.l),
       datasets:[
-        { label:"Insatisfecho (1-2)", data: dist.map(x => x.bajo),   backgroundColor: COLOR.rojo },
-        { label:"Neutral (3)",        data: dist.map(x => x.neutro), backgroundColor: COLOR.gris },
-        { label:"Satisfecho (4-5)",   data: dist.map(x => x.alto),   backgroundColor: COLOR.verde }
+        { label:"Insatisfecho (1 o 2)", data: dist.map(x => x.bajo),   backgroundColor: COLOR.rojo },
+        { label:"Término medio (3)",    data: dist.map(x => x.neutro), backgroundColor: COLOR.gris },
+        { label:"Satisfecho (4 o 5)",   data: dist.map(x => x.alto),   backgroundColor: COLOR.verde }
       ]
     },
     options:{
       indexAxis:"y",
       scales:{
-        x:{ stacked:true, max:100, title:{ display:true, text:"% de respuestas" } },
+        x:{ stacked:true, max:100, title:{ display:true, text:"% de clientes" } },
         y:{ stacked:true }
       },
-      plugins:{ title:{ display:true, text:"Distribución por dimensión (escala 1 a 5)" } }
+      plugins:{ title:{ display:true, text:"Cómo calificó cada cliente cada aspecto" } }
     }
   });
 
-  // Tendencia por local
+  // Satisfacción general por día, por local
   const dias = [...new Set(base.map(r => r.dia))].sort();
   const serie = l => dias.map(d => redondo(promedio(f.filter(r => r.local === l && r.dia === d).map(r => r.indice))));
   const datasets = [];
@@ -361,7 +361,7 @@ function render(){
     data:{ labels: dias, datasets },
     options:{
       scales:{ y: escala15 },
-      plugins:{ title:{ display:true, text:"Tendencia del índice general por día" } }
+      plugins:{ title:{ display:true, text:"Satisfacción general día por día" } }
     }
   });
 
@@ -372,7 +372,7 @@ function render(){
   grafico("cMotivo", {
     type:"doughnut",
     data:{ labels: motivos, datasets:[{ data: motivos.map(m => porMotivo[m]), backgroundColor: ["#1e3a5f","#4f6d8f","#8aa4c0","#c3d3e5","#64748b","#e2e8f0"] }] },
-    options:{ plugins:{ title:{ display:true, text:"Motivo de visita" }, legend:{ position:"right" } } }
+    options:{ plugins:{ title:{ display:true, text:"Motivo de la visita" }, legend:{ position:"right" } } }
   });
 
   // Hora
@@ -380,7 +380,7 @@ function render(){
   grafico("cHora", {
     type:"bar",
     data:{ labels: horas.map(h => h + "h"), datasets:[{ label:"Respuestas", data: horas.map(h => f.filter(r => r.hora === h).length), backgroundColor: COLOR.barra }] },
-    options:{ plugins:{ title:{ display:true, text:"Volumen por hora (Argentina)" } } }
+    options:{ plugins:{ title:{ display:true, text:"Cuántas respuestas llegan por hora (Argentina)" } } }
   });
 
   // Comentarios
@@ -389,7 +389,7 @@ function render(){
     .slice(0, 10);
   $("comentarios").innerHTML = coment.length
     ? coment.map(r => `<div class="comentario">
-        <div class="meta">Local ${r.local} · ${r.dia} ${pad2(r.hora)}h · índice ${fmt(r.indice)}</div>
+        <div class="meta">Local ${r.local} · ${r.dia} ${pad2(r.hora)}h · satisfacción ${fmt(r.indice)}</div>
         <div>${esc(r.comentario)}</div>
       </div>`).join("")
     : `<p class="nota" style="margin:0">Todavía no hay comentarios en el período seleccionado.</p>`;
