@@ -1,1 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero de satisfacción</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  body{font-family:system-ui,sans-serif;margin:0;background:#f5f5f7;color:#222}
+  header{background:#4b2c7a;color:#fff;padding:16px 24px}
+  main{padding:20px;max-width:1100px;margin:auto}
+  .login{max-width:360px;margin:80px auto;background:#fff;padding:24px;border-radius:10px;box-shadow:0 2px 8px #0001}
+  input,select,button{font:inherit;padding:8px;border-radius:6px;border:1px solid #ccc}
+  button{background:#4b2c7a;color:#fff;border:0;cursor:pointer}
+  .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+  .card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px #0001}
+  .card h3{margin:0 0 6px;font-size:13px;color:#666;font-weight:500}
+  .big{font-size:26px;font-weight:600}
+  .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+  .charts .card{height:300px}
+  .err{color:#b00020;min-height:1em}
+</style>
+</head>
+<body>
 
+<div id="login" class="login">
+  <h2>Tablero de satisfacción</h2>
+  <p>Ingresá la clave para cargar los datos.</p>
+  <input id="clave" type="password" placeholder="Clave" style="width:100%;box-sizing:border-box">
+  <p><button id="entrar" style="width:100%">Entrar</button></p>
+  <p id="loginErr" class="err"></p>
+</div>
+
+<div id="app" hidden>
+  <header><strong>Encuesta de experiencia - Tablero KPI</strong></header>
+  <main>
+    <div class="filters">
+      <label>Local
+        <select id="local">
+          <option value="ambos">Ambos</option>
+          <option value="1">Local 1</option>
+          <option value="2">Local 2</option>
+        </select>
+      </label>
+      <label>Desde <input type="date" id="desde"></label>
+      <label>Hasta <input type="date" id="hasta"></label>
+      <button id="actualizar">Actualizar datos</button>
+      <span id="estado"></span>
+    </div>
+
+    <div class="kpis">
+      <div class="card"><h3>Respuestas</h3><div class="big" id="kTotal">-</div></div>
+      <div class="card"><h3>Índice general (1-5)</h3><div class="big" id="kIndice">-</div></div>
+      <div class="card"><h3>NPS</h3><div class="big" id="kNps">-</div></div>
+      <div class="card"><h3>Top-2-box (4 y 5)</h3><div class="big" id="kTop2">-</div></div>
+      <div class="card"><h3>Dimensión más baja</h3><div class="big" id="kLow">-</div></div>
+    </div>
+
+    <div class="charts">
+      <div class="card"><canvas id="cDim"></canvas></div>
+      <div class="card"><canvas id="cTrend"></canvas></div>
+      <div class="card"><canvas id="cDia"></canvas></div>
+      <div class="card"><canvas id="cHora"></canvas></div>
+      <div class="card"><canvas id="cMotivo"></canvas></div>
+      <div class="card"><canvas id="cLocales"></canvas></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const ENDPOINTS = {
+  1: "https://script.google.com/macros/s/AKfycbyY05PrpwXH3_5oMR4S6UMMVU-wCF6VLqDzSenS-wiPrytpNYotu3t8dIkCAORyUSPJiw/exec",
+  2: "https://script.google.com/macros/s/AKfycbzTGWBojRrsuEXgSbJJTHE-LuzaVYW0KIGTpdzDtZ1NSTKMOefppHr5_FK-z1Oav3hr/exec"
+};
+const DIMENSIONES = [["atencion","Atención"],["comida","Comida y bebidas"],["espera","Tiempo de espera"],["limpieza","Limpieza y ambiente"]];
+
+let CLAVE = "";
+let DATOS = [];
+const charts = {};
+const $ = id => document.getElementById(id);
+
+function normalizar(s){ return String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim(); }
+function indices(enc, fn){ return enc.map((h,i)=> fn(normalizar(h)) ? i : -1).filter(i => i >= 0); }
+function primerValor(fila, idx){ for (const i of idx){ const v = fila[i]; if (v !== "" && v != null) return v; } return ""; }
+function numero(v){ const n = parseFloat(v); return isNaN(n) ? null : n; }
+function promedio(arr){ const a = arr.filter(x => x != null); return a.length ? a.reduce((s,x)=>s+x,0)/a.length : null; }
+function redondo(v){ return v == null ? null : +v.toFixed(2); }
+function fmt(v){ return v == null ? "-" : v.toFixed(2); }
+function agrupar(arr, key){ const m = {}; arr.forEach(r => { const k = key(r); (m[k] = m[k] || []).push(r); }); return m; }
+
+// Devuelve día (YYYY-MM-DD) y hora en Argentina, para fechas ISO (UTC) o dd/mm/yyyy hh:mm:ss
+function fechaHora(v){
+  const s = String(v).trim();
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+  if (m) return { dia: `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`, hora: +m[4] };
+  const d = new Date(s);
+  if (isNaN(d)) return null;
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA",{
+    timeZone:"America/Argentina/Buenos_Aires", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", hour12:false
+  }).formatToParts(d).map(x => [x.type, x.value]));
+  return { dia: `${p.year}-${p.month}-${p.day}`, hora: +p.hour % 24 };
+}
+
+function normalizarFilas(matriz, local){
+  const [enc, ...filas] = matriz;
+  const c = {
+    marca:    indices(enc, h => h.includes("marca temporal")),
+    atencion: indices(enc, h => h.includes("atencion")),
+    comida:   indices(enc, h => h.includes("comida") && !h.includes("merienda")),
+    espera:   indices(enc, h => h.includes("espera")),
+    limpieza: indices(enc, h => h.includes("limpieza")),
+    nps:      indices(enc, h => h.includes("recomiend")),
+    motivo:   indices(enc, h => h.includes("motivo")), // puede haber dos columnas: se toma la no vacía
+  };
+  return filas.map(f => {
+    const fh = fechaHora(primerValor(f, c.marca));
+    if (!fh) return null;
+    const r = {
+      local, dia: fh.dia, hora: fh.hora,
+      atencion: numero(primerValor(f, c.atencion)),
+      comida:   numero(primerValor(f, c.comida)),
+      espera:   numero(primerValor(f, c.espera)),
+      limpieza: numero(primerValor(f, c.limpieza)),
+      nps:      numero(primerValor(f, c.nps)),
+      motivo:   String(primerValor(f, c.motivo) || "Sin dato").trim()
+    };
+    r.indice = promedio([r.atencion, r.comida, r.espera, r.limpieza]);
+    return r;
+  }).filter(Boolean);
+}
+
+function filtrar(){
+  const loc = $("local").value, d = $("desde").value, h = $("hasta").value;
+  return DATOS.filter(r => (loc === "ambos" || String(r.local) === loc) && (!d || r.dia >= d) && (!h || r.dia <= h));
+}
+
+function grafico(id, config){
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart($(id), { ...config, options: { maintainAspectRatio: false, ...(config.options || {}) } });
+}
+
+function render(){
+  const f = filtrar();
+  $("kTotal").textContent = f.length;
+  $("kIndice").textContent = fmt(promedio(f.map(r => r.indice)));
+
+  const conNps = f.filter(r => r.nps != null);
+  if (conNps.length){
+    const prom = conNps.filter(r => r.nps >= 9).length / conNps.length;
+    const det  = conNps.filter(r => r.nps <= 6).length / conNps.length;
+    $("kNps").textContent = Math.round((prom - det) * 100);
+  } else $("kNps").textContent = "-";
+
+  const vals = f.flatMap(r => [r.atencion, r.comida, r.espera, r.limpieza]).filter(v => v != null);
+  $("kTop2").textContent = vals.length ? Math.round(vals.filter(v => v >= 4).length / vals.length * 100) + "%" : "-";
+
+  const medias = DIMENSIONES.map(([k,l]) => ({ l, m: promedio(f.map(r => r[k])) }));
+  const baja = medias.filter(x => x.m != null).sort((a,b) => a.m - b.m)[0];
+  $("kLow").textContent = baja ? `${baja.l} (${fmt(baja.m)})` : "-";
+
+  grafico("cDim", { type:"bar", data:{ labels: medias.map(x => x.l), datasets:[{ label:"Promedio (1-5)", data: medias.map(x => redondo(x.m)) }] },
+    options:{ scales:{ y:{ min:0, max:5 } } } });
+
+  const porDia = agrupar(f, r => r.dia), dias = Object.keys(porDia).sort();
+  grafico("cTrend", { type:"line", data:{ labels: dias, datasets:[{ label:"Índice general", data: dias.map(d => redondo(promedio(porDia[d].map(r => r.indice)))) }] },
+    options:{ scales:{ y:{ min:0, max:5 } } } });
+  grafico("cDia", { type:"bar", data:{ labels: dias, datasets:[{ label:"Respuestas", data: dias.map(d => porDia[d].length) }] } });
+
+  const horas = Array.from({length:24}, (_,i) => i);
+  grafico("cHora", { type:"bar", data:{ labels: horas.map(h => h + "h"), datasets:[{ label:"Respuestas", data: horas.map(h => f.filter(r => r.hora === h).length) }] } });
+
+  const porMotivo = agrupar(f, r => r.motivo), motivos = Object.keys(porMotivo);
+  grafico("cMotivo", { type:"doughnut", data:{ labels: motivos, datasets:[{ data: motivos.map(m => porMotivo[m].length) }] } });
+
+  // Comparación entre locales: usa el rango de fechas, ignora el filtro de local
+  const base = DATOS.filter(r => (!$("desde").value || r.dia >= $("desde").value) && (!$("hasta").value || r.dia <= $("hasta").value));
+  grafico("cLocales", { type:"bar", data:{
+      labels: DIMENSIONES.map(d => d[1]),
+      datasets: [1,2].map(l => ({ label:`Local ${l}`, data: DIMENSIONES.map(([k]) => redondo(promedio(base.filter(r => r.local === l).map(r => r[k])))) }))
+    }, options:{ scales:{ y:{ min:0, max:5 } } } });
+}
+
+async function cargar(esLogin){
+  $("estado").textContent = "Cargando datos...";
+  try {
+    const partes = await Promise.all([1,2].map(async l => {
+      const r = await fetch(`${ENDPOINTS[l]}?clave=${encodeURIComponent(CLAVE)}`);
+      const j = await r.json();
+      if (j.error) throw new Error(j.error);
+      return normalizarFilas(j, l);
+    }));
+    DATOS = partes.flat();
+    $("login").hidden = true;
+    $("app").hidden = false;
+    $("clave").value = "";
+    $("estado").textContent = `Datos cargados: ${DATOS.length} respuestas`;
+    render();
+  } catch (e) {
+    if (esLogin) $("loginErr").textContent = e.message === "no autorizado" ? "Clave incorrecta." : "No se pudieron cargar los datos: " + e.message;
+    else $("estado").textContent = "Error: " + e.message;
+  }
+}
+
+$("entrar").onclick = () => { CLAVE = $("clave").value; $("loginErr").textContent = ""; cargar(true); };
+$("clave").addEventListener("keydown", e => { if (e.key === "Enter") $("entrar").click(); });
+$("actualizar").onclick = () => cargar(false);
+["local","desde","hasta"].forEach(id => $(id).addEventListener("change", render));
+</script>
+</body>
+</html>
