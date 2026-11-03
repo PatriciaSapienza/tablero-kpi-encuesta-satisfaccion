@@ -7,39 +7,39 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{
-    --fondo:#f7f7f5; --tarjeta:#ffffff; --texto:#1f2937; --muted:#6b7280; --borde:#e5e7eb;
-    --acento:#334155;
-    --verde:#166534; --verde-bg:#dcfce7;
-    --amarillo:#92400e; --amarillo-bg:#fef3c7;
-    --rojo:#991b1b; --rojo-bg:#fee2e2;
-    --local1:#2563eb; --local2:#0d9488;
+    --fondo:#f7f7f5; --tarjeta:#ffffff; --texto:#1f2937; --muted:#5b6472; --borde:#e5e7eb;
+    --acento:#1e3a5f;
+    --verde:#166534; --verde-bg:#e8f3ec;
+    --amarillo:#854d0e; --amarillo-bg:#fbf3dc;
+    --rojo:#991b1b; --rojo-bg:#fbe9e7;
+    --neutro-txt:#4b5563; --neutro-bg:#f0f1f3;
   }
   *{box-sizing:border-box}
   body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;background:var(--fondo);color:var(--texto);font-size:14px}
   header{background:var(--tarjeta);border-bottom:1px solid var(--borde);padding:16px 24px}
-  header h1{margin:0;font-size:18px;font-weight:600}
+  header h1{margin:0;font-size:18px;font-weight:600;color:var(--acento)}
   header p{margin:4px 0 0;color:var(--muted);font-size:13px}
   main{padding:20px 24px;max-width:1200px;margin:auto}
   h2{font-size:15px;font-weight:600;margin:28px 0 10px;color:var(--acento)}
   .filtros{display:flex;gap:12px;flex-wrap:wrap;align-items:end;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:12px 14px}
   .filtros label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
-  input,select,button{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:var(--texto)}
+  input,select,button{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid #cbd0d8;background:#fff;color:var(--texto)}
   button{background:var(--acento);color:#fff;border:0;cursor:pointer}
   button:hover{opacity:.9}
   .estado-txt{color:var(--muted);font-size:12px;align-self:center}
   .grid-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
   .card{background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:14px 16px}
   .card h3{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.03em}
-  .valor{font-size:28px;font-weight:600;line-height:1.1}
+  .valor{font-size:28px;font-weight:600;line-height:1.1;color:var(--texto)}
   .sub{font-size:12px;color:var(--muted);margin-top:6px}
   .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;margin-left:6px;vertical-align:middle}
   .verde{background:var(--verde-bg);color:var(--verde)}
   .amarillo{background:var(--amarillo-bg);color:var(--amarillo)}
   .rojo{background:var(--rojo-bg);color:var(--rojo)}
-  .neutro{background:#f3f4f6;color:var(--muted)}
+  .neutro{background:var(--neutro-bg);color:var(--neutro-txt)}
   table{width:100%;border-collapse:collapse;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;overflow:hidden}
   th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--borde);font-size:13px}
-  th{background:#fafafa;color:var(--muted);font-weight:500;font-size:12px}
+  th{background:#f5f6f8;color:var(--muted);font-weight:500;font-size:12px}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   tr:last-child td{border-bottom:0}
   .prioridad{background:var(--tarjeta);border:1px solid var(--borde);border-left:4px solid var(--acento);border-radius:10px;padding:12px 16px;margin-bottom:12px}
@@ -53,7 +53,8 @@
   .login h2{margin:0 0 6px}
   .err{color:var(--rojo);min-height:1.2em;font-size:13px}
   @media (prefers-color-scheme: dark){
-    :root{--fondo:#111827;--tarjeta:#1f2937;--texto:#f3f4f6;--muted:#9ca3af;--borde:#374151;--acento:#cbd5e1}
+    :root{--fondo:#111827;--tarjeta:#1f2937;--texto:#f3f4f6;--muted:#9ca3af;--borde:#374151;--acento:#9ec3e6;
+      --verde-bg:#14331f;--verde:#86d19c;--amarillo-bg:#3a2e10;--amarillo:#f2cf73;--rojo-bg:#3d1c19;--rojo:#f1a59e;--neutro-bg:#2b2f36;--neutro-txt:#c7ccd4}
     button{color:#111827}
     th{background:#111827}
     input,select{background:#111827;color:#f3f4f6;border-color:#4b5563}
@@ -160,7 +161,16 @@ const DIMENSIONES = [
   { k:"espera",   l:"Tiempo de espera" },
   { k:"limpieza", l:"Limpieza y ambiente" }
 ];
-const COLOR = { verde:"#16a34a", amarillo:"#d97706", rojo:"#dc2626", gris:"#9ca3af", local1:"#2563eb", local2:"#0d9488" };
+
+// PALETA: azul para los locales, grises para lo neutral, rojo/verde suaves solo para la distribución
+const COLOR = {
+  rojo:   "#e0736b",
+  gris:   "#d1d5db",
+  verde:  "#7fbf8e",
+  local1: "#1e3a5f",
+  local2: "#5b8fc7",
+  barra:  "#8aa4c0"
+};
 
 let CLAVE = "";
 let DATOS = [];
@@ -345,7 +355,7 @@ function render(){
   const serie = l => dias.map(d => redondo(promedio(f.filter(r => r.local === l && r.dia === d).map(r => r.indice))));
   const datasets = [];
   if ($("local").value !== "2") datasets.push({ label:"Local 1", data: serie(1), borderColor: COLOR.local1, backgroundColor: COLOR.local1, spanGaps:true, tension:.3 });
-  if ($("local").value !== "1") datasets.push({ label:"Local 2", data: serie(2), borderColor: COLOR.local2, backgroundColor: COLOR.local2, spanGaps:true, tension:.3 });
+  if ($("local").value !== "1") datasets.push({ label:"Local 2", data: serie(2), borderColor: COLOR.local2, backgroundColor: COLOR.local2, borderDash:[6,4], spanGaps:true, tension:.3 });
   grafico("cTrend", {
     type:"line",
     data:{ labels: dias, datasets },
@@ -361,7 +371,7 @@ function render(){
   const motivos = Object.keys(porMotivo);
   grafico("cMotivo", {
     type:"doughnut",
-    data:{ labels: motivos, datasets:[{ data: motivos.map(m => porMotivo[m]), backgroundColor: ["#334155","#64748b","#94a3b8","#cbd5e1","#475569","#e2e8f0"] }] },
+    data:{ labels: motivos, datasets:[{ data: motivos.map(m => porMotivo[m]), backgroundColor: ["#1e3a5f","#4f6d8f","#8aa4c0","#c3d3e5","#64748b","#e2e8f0"] }] },
     options:{ plugins:{ title:{ display:true, text:"Motivo de visita" }, legend:{ position:"right" } } }
   });
 
@@ -369,7 +379,7 @@ function render(){
   const horas = Array.from({length:24}, (_,i) => i);
   grafico("cHora", {
     type:"bar",
-    data:{ labels: horas.map(h => h + "h"), datasets:[{ label:"Respuestas", data: horas.map(h => f.filter(r => r.hora === h).length), backgroundColor: COLOR.gris }] },
+    data:{ labels: horas.map(h => h + "h"), datasets:[{ label:"Respuestas", data: horas.map(h => f.filter(r => r.hora === h).length), backgroundColor: COLOR.barra }] },
     options:{ plugins:{ title:{ display:true, text:"Volumen por hora (Argentina)" } } }
   });
 
