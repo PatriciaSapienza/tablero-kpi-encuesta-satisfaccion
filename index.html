@@ -6,36 +6,77 @@
 <title>Tablero de satisfacción</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  body{font-family:system-ui,sans-serif;margin:0;background:#f5f5f7;color:#222}
-  header{background:#4b2c7a;color:#fff;padding:16px 24px}
-  main{padding:20px;max-width:1100px;margin:auto}
-  .login{max-width:360px;margin:80px auto;background:#fff;padding:24px;border-radius:10px;box-shadow:0 2px 8px #0001}
-  input,select,button{font:inherit;padding:8px;border-radius:6px;border:1px solid #ccc}
-  button{background:#4b2c7a;color:#fff;border:0;cursor:pointer}
-  .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
-  .card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px #0001}
-  .card h3{margin:0 0 6px;font-size:13px;color:#666;font-weight:500}
-  .big{font-size:26px;font-weight:600}
-  .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
-  .charts .card{height:300px}
-  .err{color:#b00020;min-height:1em}
+  :root{
+    --fondo:#f7f7f5; --tarjeta:#ffffff; --texto:#1f2937; --muted:#6b7280; --borde:#e5e7eb;
+    --acento:#334155;
+    --verde:#166534; --verde-bg:#dcfce7;
+    --amarillo:#92400e; --amarillo-bg:#fef3c7;
+    --rojo:#991b1b; --rojo-bg:#fee2e2;
+    --local1:#2563eb; --local2:#0d9488;
+  }
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;background:var(--fondo);color:var(--texto);font-size:14px}
+  header{background:var(--tarjeta);border-bottom:1px solid var(--borde);padding:16px 24px}
+  header h1{margin:0;font-size:18px;font-weight:600}
+  header p{margin:4px 0 0;color:var(--muted);font-size:13px}
+  main{padding:20px 24px;max-width:1200px;margin:auto}
+  h2{font-size:15px;font-weight:600;margin:28px 0 10px;color:var(--acento)}
+  .filtros{display:flex;gap:12px;flex-wrap:wrap;align-items:end;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:12px 14px}
+  .filtros label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+  input,select,button{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:var(--texto)}
+  button{background:var(--acento);color:#fff;border:0;cursor:pointer}
+  button:hover{opacity:.9}
+  .estado-txt{color:var(--muted);font-size:12px;align-self:center}
+  .grid-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .card{background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:14px 16px}
+  .card h3{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.03em}
+  .valor{font-size:28px;font-weight:600;line-height:1.1}
+  .sub{font-size:12px;color:var(--muted);margin-top:6px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;margin-left:6px;vertical-align:middle}
+  .verde{background:var(--verde-bg);color:var(--verde)}
+  .amarillo{background:var(--amarillo-bg);color:var(--amarillo)}
+  .rojo{background:var(--rojo-bg);color:var(--rojo)}
+  .neutro{background:#f3f4f6;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;overflow:hidden}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--borde);font-size:13px}
+  th{background:#fafafa;color:var(--muted);font-weight:500;font-size:12px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:0}
+  .prioridad{background:var(--tarjeta);border:1px solid var(--borde);border-left:4px solid var(--acento);border-radius:10px;padding:12px 16px;margin-bottom:12px}
+  .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+  .charts .card{height:320px}
+  .nota{font-size:12px;color:var(--muted);margin:8px 0 0}
+  .comentario{border-bottom:1px solid var(--borde);padding:10px 0}
+  .comentario:last-child{border-bottom:0}
+  .comentario .meta{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .login{max-width:360px;margin:80px auto;background:var(--tarjeta);border:1px solid var(--borde);padding:24px;border-radius:10px}
+  .login h2{margin:0 0 6px}
+  .err{color:var(--rojo);min-height:1.2em;font-size:13px}
+  @media (prefers-color-scheme: dark){
+    :root{--fondo:#111827;--tarjeta:#1f2937;--texto:#f3f4f6;--muted:#9ca3af;--borde:#374151;--acento:#cbd5e1}
+    button{color:#111827}
+    th{background:#111827}
+    input,select{background:#111827;color:#f3f4f6;border-color:#4b5563}
+  }
 </style>
 </head>
 <body>
 
 <div id="login" class="login">
   <h2>Tablero de satisfacción</h2>
-  <p>Ingresá la clave para cargar los datos.</p>
-  <input id="clave" type="password" placeholder="Clave" style="width:100%;box-sizing:border-box">
-  <p><button id="entrar" style="width:100%">Entrar</button></p>
+  <p class="nota">Ingresá la clave para cargar los datos. No se guarda.</p>
+  <input id="clave" type="password" placeholder="Clave" style="width:100%">
+  <p><button id="entrar" style="width:100%;margin-top:10px">Entrar</button></p>
   <p id="loginErr" class="err"></p>
 </div>
 
 <div id="app" hidden>
-  <header><strong>Encuesta de experiencia - Tablero KPI</strong></header>
+  <header>
+    <h1>Encuesta de experiencia · Tablero para decisiones</h1>
+    <p>Escala de todas las preguntas: 1 = muy malo, 5 = excelente. NPS: de -100 a 100.</p>
+  </header>
   <main>
-    <div class="filters">
+    <div class="filtros">
       <label>Local
         <select id="local">
           <option value="ambos">Ambos</option>
@@ -46,24 +87,56 @@
       <label>Desde <input type="date" id="desde"></label>
       <label>Hasta <input type="date" id="hasta"></label>
       <button id="actualizar">Actualizar datos</button>
-      <span id="estado"></span>
+      <span id="estado" class="estado-txt"></span>
     </div>
 
-    <div class="kpis">
-      <div class="card"><h3>Respuestas</h3><div class="big" id="kTotal">-</div></div>
-      <div class="card"><h3>Índice general (1-5)</h3><div class="big" id="kIndice">-</div></div>
-      <div class="card"><h3>NPS</h3><div class="big" id="kNps">-</div></div>
-      <div class="card"><h3>Top-2-box (4 y 5)</h3><div class="big" id="kTop2">-</div></div>
-      <div class="card"><h3>Dimensión más baja</h3><div class="big" id="kLow">-</div></div>
+    <h2>Estado general</h2>
+    <div class="grid-kpi">
+      <div class="card"><h3>Respuestas</h3><div class="valor" id="kTotal">-</div><div class="sub" id="kTotalSub"></div></div>
+      <div class="card"><h3>Índice general <span class="nota">(1-5)</span></h3><div class="valor" id="kIndice">-</div><div class="sub" id="kIndiceEst"></div></div>
+      <div class="card"><h3>NPS</h3><div class="valor" id="kNps">-</div><div class="sub" id="kNpsEst"></div></div>
+      <div class="card"><h3>Top-2-box <span class="nota">(% de 4 y 5)</span></h3><div class="valor" id="kTop2">-</div><div class="sub" id="kTop2Est"></div></div>
     </div>
 
+    <h2>Dónde actuar</h2>
+    <div class="prioridad" id="prioridad">-</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Dimensión</th>
+          <th class="num">Promedio (1-5)</th>
+          <th class="num">Local 1</th>
+          <th class="num">Local 2</th>
+          <th class="num">% insatisfechos (1-2)</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="tablaDim"></tbody>
+    </table>
+    <p class="nota">Ordenado de menor a mayor puntaje. Insatisfecho = puntaje 1 o 2. Estado según el promedio general de la dimensión (ver umbrales abajo).</p>
+
+    <h2>Distribución de respuestas</h2>
     <div class="charts">
-      <div class="card"><canvas id="cDim"></canvas></div>
+      <div class="card"><canvas id="cDist"></canvas></div>
       <div class="card"><canvas id="cTrend"></canvas></div>
-      <div class="card"><canvas id="cDia"></canvas></div>
-      <div class="card"><canvas id="cHora"></canvas></div>
+    </div>
+    <p class="nota">Distribución: rojo = 1-2 (insatisfecho), gris = 3 (neutral), verde = 4-5 (satisfecho). Tendencia: promedio del índice general por día, escala 1 a 5.</p>
+
+    <h2>Contexto de visita</h2>
+    <div class="charts">
       <div class="card"><canvas id="cMotivo"></canvas></div>
-      <div class="card"><canvas id="cLocales"></canvas></div>
+      <div class="card"><canvas id="cHora"></canvas></div>
+    </div>
+
+    <h2>Comentarios recientes</h2>
+    <div class="card" id="comentarios"></div>
+
+    <h2>Umbrales del semáforo</h2>
+    <div class="card">
+      <p class="nota" style="margin:0"><strong>Índice general y dimensiones:</strong> verde desde 4.20, amarillo desde 3.50, rojo debajo de 3.50.<br>
+      <strong>NPS:</strong> verde desde 50, amarillo desde 0, rojo debajo de 0. Se calcula como % promotores (9-10) menos % detractores (0-6).<br>
+      <strong>Top-2-box:</strong> verde desde 80%, amarillo desde 60%, rojo debajo de 60%.<br>
+      Estos valores son una propuesta y se pueden cambiar en la sección UMBRALES del código.</p>
     </div>
   </main>
 </div>
@@ -73,12 +146,27 @@ const ENDPOINTS = {
   1: "https://script.google.com/macros/s/AKfycbyY05PrpwXH3_5oMR4S6UMMVU-wCF6VLqDzSenS-wiPrytpNYotu3t8dIkCAORyUSPJiw/exec",
   2: "https://script.google.com/macros/s/AKfycbzTGWBojRrsuEXgSbJJTHE-LuzaVYW0KIGTpdzDtZ1NSTKMOefppHr5_FK-z1Oav3hr/exec"
 };
-const DIMENSIONES = [["atencion","Atención"],["comida","Comida y bebidas"],["espera","Tiempo de espera"],["limpieza","Limpieza y ambiente"]];
+
+// UMBRALES (editables)
+const UMBRAL = {
+  indice: { verde: 4.2, amarillo: 3.5 },
+  nps:    { verde: 50,  amarillo: 0 },
+  top2:   { verde: 80,  amarillo: 60 }
+};
+
+const DIMENSIONES = [
+  { k:"atencion", l:"Atención" },
+  { k:"comida",   l:"Comida y bebidas" },
+  { k:"espera",   l:"Tiempo de espera" },
+  { k:"limpieza", l:"Limpieza y ambiente" }
+];
+const COLOR = { verde:"#16a34a", amarillo:"#d97706", rojo:"#dc2626", gris:"#9ca3af", local1:"#2563eb", local2:"#0d9488" };
 
 let CLAVE = "";
 let DATOS = [];
 const charts = {};
 const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 function normalizar(s){ return String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim(); }
 function indices(enc, fn){ return enc.map((h,i)=> fn(normalizar(h)) ? i : -1).filter(i => i >= 0); }
@@ -87,13 +175,14 @@ function numero(v){ const n = parseFloat(v); return isNaN(n) ? null : n; }
 function promedio(arr){ const a = arr.filter(x => x != null); return a.length ? a.reduce((s,x)=>s+x,0)/a.length : null; }
 function redondo(v){ return v == null ? null : +v.toFixed(2); }
 function fmt(v){ return v == null ? "-" : v.toFixed(2); }
-function agrupar(arr, key){ const m = {}; arr.forEach(r => { const k = key(r); (m[k] = m[k] || []).push(r); }); return m; }
+function pct(n, d){ return d ? Math.round(n / d * 100) : null; }
+function pad2(n){ return String(n).padStart(2,"0"); }
 
-// Devuelve día (YYYY-MM-DD) y hora en Argentina, para fechas ISO (UTC) o dd/mm/yyyy hh:mm:ss
+// Fecha/hora en horario de Argentina. Acepta ISO (UTC) o dd/mm/yyyy hh:mm:ss
 function fechaHora(v){
   const s = String(v).trim();
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
-  if (m) return { dia: `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`, hora: +m[4] };
+  if (m) return { dia: `${m[3]}-${pad2(m[2])}-${pad2(m[1])}`, hora: +m[4] };
   const d = new Date(s);
   if (isNaN(d)) return null;
   const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA",{
@@ -105,13 +194,14 @@ function fechaHora(v){
 function normalizarFilas(matriz, local){
   const [enc, ...filas] = matriz;
   const c = {
-    marca:    indices(enc, h => h.includes("marca temporal")),
-    atencion: indices(enc, h => h.includes("atencion")),
-    comida:   indices(enc, h => h.includes("comida") && !h.includes("merienda")),
-    espera:   indices(enc, h => h.includes("espera")),
-    limpieza: indices(enc, h => h.includes("limpieza")),
-    nps:      indices(enc, h => h.includes("recomiend")),
-    motivo:   indices(enc, h => h.includes("motivo")), // puede haber dos columnas: se toma la no vacía
+    marca:      indices(enc, h => h.includes("marca temporal")),
+    atencion:   indices(enc, h => h.includes("atencion")),
+    comida:     indices(enc, h => h.includes("comida") && !h.includes("merienda")),
+    espera:     indices(enc, h => h.includes("espera")),
+    limpieza:   indices(enc, h => h.includes("limpieza")),
+    nps:        indices(enc, h => h.includes("recomiend")),
+    motivo:     indices(enc, h => h.includes("motivo")),
+    comentario: indices(enc, h => h.includes("comentario"))
   };
   return filas.map(f => {
     const fh = fechaHora(primerValor(f, c.marca));
@@ -123,62 +213,176 @@ function normalizarFilas(matriz, local){
       espera:   numero(primerValor(f, c.espera)),
       limpieza: numero(primerValor(f, c.limpieza)),
       nps:      numero(primerValor(f, c.nps)),
-      motivo:   String(primerValor(f, c.motivo) || "Sin dato").trim()
+      motivo:   String(primerValor(f, c.motivo) || "Sin dato").trim(),
+      comentario: String(primerValor(f, c.comentario) || "").trim()
     };
     r.indice = promedio([r.atencion, r.comida, r.espera, r.limpieza]);
     return r;
   }).filter(Boolean);
 }
 
+function estado(v, u){
+  if (v == null) return { c:"neutro", t:"Sin datos" };
+  if (v >= u.verde) return { c:"verde", t:"Bien" };
+  if (v >= u.amarillo) return { c:"amarillo", t:"Atención" };
+  return { c:"rojo", t:"Actuar" };
+}
+function badge(e){ return `<span class="badge ${e.c}">${e.t}</span>`; }
+
+function filtrarBase(){
+  const d = $("desde").value, h = $("hasta").value;
+  return DATOS.filter(r => (!d || r.dia >= d) && (!h || r.dia <= h));
+}
 function filtrar(){
-  const loc = $("local").value, d = $("desde").value, h = $("hasta").value;
-  return DATOS.filter(r => (loc === "ambos" || String(r.local) === loc) && (!d || r.dia >= d) && (!h || r.dia <= h));
+  const loc = $("local").value;
+  return filtrarBase().filter(r => loc === "ambos" || String(r.local) === loc);
 }
 
 function grafico(id, config){
   if (charts[id]) charts[id].destroy();
-  charts[id] = new Chart($(id), { ...config, options: { maintainAspectRatio: false, ...(config.options || {}) } });
+  const base = { maintainAspectRatio:false, plugins:{ legend:{ labels:{ boxWidth:12, font:{ size:12 } } } } };
+  charts[id] = new Chart($(id), { ...config, options: deepMerge(base, config.options || {}) });
 }
+function deepMerge(a, b){
+  const out = { ...a };
+  for (const k of Object.keys(b)){
+    out[k] = (b[k] && typeof b[k] === "object" && !Array.isArray(b[k])) ? deepMerge(a[k] || {}, b[k]) : b[k];
+  }
+  return out;
+}
+const escala15 = { min:1, max:5, ticks:{ stepSize:1 }, title:{ display:true, text:"Promedio (1 = muy malo, 5 = excelente)" } };
 
 function render(){
   const f = filtrar();
+  const base = filtrarBase();
+
+  // Estado general
   $("kTotal").textContent = f.length;
-  $("kIndice").textContent = fmt(promedio(f.map(r => r.indice)));
+  $("kTotalSub").textContent = $("local").value === "ambos" ? `L1: ${f.filter(r=>r.local===1).length} · L2: ${f.filter(r=>r.local===2).length}` : "";
+
+  const indice = promedio(f.map(r => r.indice));
+  const eI = estado(indice, UMBRAL.indice);
+  $("kIndice").innerHTML = `${fmt(indice)}`;
+  $("kIndiceEst").innerHTML = badge(eI) + " umbral verde 4.20";
 
   const conNps = f.filter(r => r.nps != null);
+  let npsVal = null;
   if (conNps.length){
-    const prom = conNps.filter(r => r.nps >= 9).length / conNps.length;
-    const det  = conNps.filter(r => r.nps <= 6).length / conNps.length;
-    $("kNps").textContent = Math.round((prom - det) * 100);
-  } else $("kNps").textContent = "-";
+    const prom = conNps.filter(r => r.nps >= 9).length;
+    const det  = conNps.filter(r => r.nps <= 6).length;
+    npsVal = Math.round((prom - det) / conNps.length * 100);
+  }
+  const eN = estado(npsVal, UMBRAL.nps);
+  $("kNps").textContent = npsVal == null ? "-" : npsVal;
+  $("kNpsEst").innerHTML = badge(eN) + (conNps.length ? ` ${conNps.length} respuestas` : "");
 
   const vals = f.flatMap(r => [r.atencion, r.comida, r.espera, r.limpieza]).filter(v => v != null);
-  $("kTop2").textContent = vals.length ? Math.round(vals.filter(v => v >= 4).length / vals.length * 100) + "%" : "-";
+  const top2 = pct(vals.filter(v => v >= 4).length, vals.length);
+  const eT = estado(top2, UMBRAL.top2);
+  $("kTop2").textContent = top2 == null ? "-" : top2 + "%";
+  $("kTop2Est").innerHTML = badge(eT);
 
-  const medias = DIMENSIONES.map(([k,l]) => ({ l, m: promedio(f.map(r => r[k])) }));
-  const baja = medias.filter(x => x.m != null).sort((a,b) => a.m - b.m)[0];
-  $("kLow").textContent = baja ? `${baja.l} (${fmt(baja.m)})` : "-";
+  // Dónde actuar
+  const filas = DIMENSIONES.map(d => {
+    const vs = f.map(r => r[d.k]).filter(v => v != null);
+    const prom = promedio(vs);
+    const insat = pct(vs.filter(v => v <= 2).length, vs.length);
+    return {
+      l: d.l, prom,
+      l1: promedio(f.filter(r=>r.local===1).map(r=>r[d.k])),
+      l2: promedio(f.filter(r=>r.local===2).map(r=>r[d.k])),
+      insat, vs
+    };
+  }).sort((a,b) => (a.prom ?? 99) - (b.prom ?? 99));
 
-  grafico("cDim", { type:"bar", data:{ labels: medias.map(x => x.l), datasets:[{ label:"Promedio (1-5)", data: medias.map(x => redondo(x.m)) }] },
-    options:{ scales:{ y:{ min:0, max:5 } } } });
+  const peor = filas.find(x => x.prom != null);
+  $("prioridad").innerHTML = peor
+    ? `<strong>Prioridad 1: ${esc(peor.l)}</strong> con promedio ${fmt(peor.prom)} (${badge(estado(peor.prom, UMBRAL.indice))}). ${peor.insat != null ? peor.insat + "% de las respuestas son insatisfechas en esta dimensión." : ""}`
+    : "Sin datos suficientes para priorizar.";
 
-  const porDia = agrupar(f, r => r.dia), dias = Object.keys(porDia).sort();
-  grafico("cTrend", { type:"line", data:{ labels: dias, datasets:[{ label:"Índice general", data: dias.map(d => redondo(promedio(porDia[d].map(r => r.indice)))) }] },
-    options:{ scales:{ y:{ min:0, max:5 } } } });
-  grafico("cDia", { type:"bar", data:{ labels: dias, datasets:[{ label:"Respuestas", data: dias.map(d => porDia[d].length) }] } });
+  $("tablaDim").innerHTML = filas.map(x => `
+    <tr>
+      <td>${esc(x.l)}</td>
+      <td class="num">${fmt(x.prom)}</td>
+      <td class="num">${fmt(x.l1)}</td>
+      <td class="num">${fmt(x.l2)}</td>
+      <td class="num">${x.insat == null ? "-" : x.insat + "%"}</td>
+      <td>${badge(estado(x.prom, UMBRAL.indice))}</td>
+    </tr>`).join("");
 
+  // Distribución (100% apilado)
+  const dist = filas.map(x => {
+    const n = x.vs.length;
+    return {
+      l: x.l,
+      bajo: pct(x.vs.filter(v => v <= 2).length, n) ?? 0,
+      neutro: pct(x.vs.filter(v => v === 3).length, n) ?? 0,
+      alto: pct(x.vs.filter(v => v >= 4).length, n) ?? 0
+    };
+  });
+  grafico("cDist", {
+    type:"bar",
+    data:{
+      labels: dist.map(x => x.l),
+      datasets:[
+        { label:"Insatisfecho (1-2)", data: dist.map(x => x.bajo),   backgroundColor: COLOR.rojo },
+        { label:"Neutral (3)",        data: dist.map(x => x.neutro), backgroundColor: COLOR.gris },
+        { label:"Satisfecho (4-5)",   data: dist.map(x => x.alto),   backgroundColor: COLOR.verde }
+      ]
+    },
+    options:{
+      indexAxis:"y",
+      scales:{
+        x:{ stacked:true, max:100, title:{ display:true, text:"% de respuestas" } },
+        y:{ stacked:true }
+      },
+      plugins:{ title:{ display:true, text:"Distribución por dimensión (escala 1 a 5)" } }
+    }
+  });
+
+  // Tendencia por local
+  const dias = [...new Set(base.map(r => r.dia))].sort();
+  const serie = l => dias.map(d => redondo(promedio(f.filter(r => r.local === l && r.dia === d).map(r => r.indice))));
+  const datasets = [];
+  if ($("local").value !== "2") datasets.push({ label:"Local 1", data: serie(1), borderColor: COLOR.local1, backgroundColor: COLOR.local1, spanGaps:true, tension:.3 });
+  if ($("local").value !== "1") datasets.push({ label:"Local 2", data: serie(2), borderColor: COLOR.local2, backgroundColor: COLOR.local2, spanGaps:true, tension:.3 });
+  grafico("cTrend", {
+    type:"line",
+    data:{ labels: dias, datasets },
+    options:{
+      scales:{ y: escala15 },
+      plugins:{ title:{ display:true, text:"Tendencia del índice general por día" } }
+    }
+  });
+
+  // Motivo
+  const porMotivo = {};
+  f.forEach(r => { porMotivo[r.motivo] = (porMotivo[r.motivo] || 0) + 1; });
+  const motivos = Object.keys(porMotivo);
+  grafico("cMotivo", {
+    type:"doughnut",
+    data:{ labels: motivos, datasets:[{ data: motivos.map(m => porMotivo[m]), backgroundColor: ["#334155","#64748b","#94a3b8","#cbd5e1","#475569","#e2e8f0"] }] },
+    options:{ plugins:{ title:{ display:true, text:"Motivo de visita" }, legend:{ position:"right" } } }
+  });
+
+  // Hora
   const horas = Array.from({length:24}, (_,i) => i);
-  grafico("cHora", { type:"bar", data:{ labels: horas.map(h => h + "h"), datasets:[{ label:"Respuestas", data: horas.map(h => f.filter(r => r.hora === h).length) }] } });
+  grafico("cHora", {
+    type:"bar",
+    data:{ labels: horas.map(h => h + "h"), datasets:[{ label:"Respuestas", data: horas.map(h => f.filter(r => r.hora === h).length), backgroundColor: COLOR.gris }] },
+    options:{ plugins:{ title:{ display:true, text:"Volumen por hora (Argentina)" } } }
+  });
 
-  const porMotivo = agrupar(f, r => r.motivo), motivos = Object.keys(porMotivo);
-  grafico("cMotivo", { type:"doughnut", data:{ labels: motivos, datasets:[{ data: motivos.map(m => porMotivo[m].length) }] } });
-
-  // Comparación entre locales: usa el rango de fechas, ignora el filtro de local
-  const base = DATOS.filter(r => (!$("desde").value || r.dia >= $("desde").value) && (!$("hasta").value || r.dia <= $("hasta").value));
-  grafico("cLocales", { type:"bar", data:{
-      labels: DIMENSIONES.map(d => d[1]),
-      datasets: [1,2].map(l => ({ label:`Local ${l}`, data: DIMENSIONES.map(([k]) => redondo(promedio(base.filter(r => r.local === l).map(r => r[k])))) }))
-    }, options:{ scales:{ y:{ min:0, max:5 } } } });
+  // Comentarios
+  const coment = f.filter(r => r.comentario)
+    .sort((a,b) => (b.dia + b.hora).localeCompare(a.dia + a.hora))
+    .slice(0, 10);
+  $("comentarios").innerHTML = coment.length
+    ? coment.map(r => `<div class="comentario">
+        <div class="meta">Local ${r.local} · ${r.dia} ${pad2(r.hora)}h · índice ${fmt(r.indice)}</div>
+        <div>${esc(r.comentario)}</div>
+      </div>`).join("")
+    : `<p class="nota" style="margin:0">Todavía no hay comentarios en el período seleccionado.</p>`;
 }
 
 async function cargar(esLogin){
