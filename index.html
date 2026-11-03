@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Tablero de satisfacción</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -15,15 +15,17 @@
     --neutro-txt:#4b5563; --neutro-bg:#f0f1f3;
   }
   *{box-sizing:border-box}
-  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;background:var(--fondo);color:var(--texto);font-size:14px}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;background:var(--fondo);color:var(--texto);font-size:14px;overflow-x:hidden}
   header{background:var(--tarjeta);border-bottom:1px solid var(--borde);padding:16px 24px}
   header h1{margin:0;font-size:18px;font-weight:600;color:var(--acento)}
   header p{margin:4px 0 0;color:var(--muted);font-size:13px}
-  main{padding:20px 24px;max-width:1200px;margin:auto}
+  main{padding:20px 24px;max-width:1200px;margin:auto;min-width:0}
   h2{font-size:15px;font-weight:600;margin:28px 0 10px;color:var(--acento)}
   .filtros{display:flex;gap:12px;flex-wrap:wrap;align-items:end;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:12px 14px}
-  .filtros label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
-  input,select,button{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid #cbd0d8;background:#fff;color:var(--texto)}
+  .filtros label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+  input,select,button{font:inherit;padding:8px 9px;border-radius:6px;border:1px solid #cbd0d8;background:#fff;color:var(--texto);max-width:100%}
+  input,select{font-size:16px} /* 16px evita el zoom automático en iPhone */
   button{background:var(--acento);color:#fff;border:0;cursor:pointer}
   button:hover{opacity:.9}
   .estado-txt{color:var(--muted);font-size:12px;align-self:center}
@@ -32,7 +34,7 @@
   .tab.activo{color:var(--acento);border-bottom-color:var(--acento)}
   .tab:hover{opacity:1}
   .grid-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-  .card{background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:14px 16px}
+  .card{background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:14px 16px;position:relative;min-width:0}
   .card h3{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.03em}
   .valor{font-size:28px;font-weight:600;line-height:1.1;color:var(--texto)}
   .sub{font-size:12px;color:var(--muted);margin-top:6px}
@@ -41,22 +43,22 @@
   .amarillo{background:var(--amarillo-bg);color:var(--amarillo)}
   .rojo{background:var(--rojo-bg);color:var(--rojo)}
   .neutro{background:var(--neutro-bg);color:var(--neutro-txt)}
-  table{width:100%;border-collapse:collapse;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;overflow:hidden}
+  .tabla-wrap{width:100%;max-width:100%;overflow-x:auto;border:1px solid var(--borde);border-radius:10px;background:var(--tarjeta)}
+  table{width:100%;border-collapse:collapse;background:var(--tarjeta)}
   th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--borde);font-size:13px}
-  th{background:#f5f6f8;color:var(--muted);font-weight:500;font-size:12px;position:sticky;top:0}
+  th{background:#f5f6f8;color:var(--muted);font-weight:500;font-size:12px}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   tr:last-child td{border-bottom:0}
-  .tabla-wrap{max-height:420px;overflow:auto;border-radius:10px;border:1px solid var(--borde)}
-  .tabla-wrap table{border:0;border-radius:0}
   .prioridad{background:var(--tarjeta);border:1px solid var(--borde);border-left:4px solid var(--acento);border-radius:10px;padding:12px 16px;margin-bottom:12px}
-  .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+  .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:14px}
   .charts .card{height:320px}
+  canvas{max-width:100%}
   .nota{font-size:12px;color:var(--muted);margin:8px 0 0}
   .comentario{border-bottom:1px solid var(--borde);padding:10px 0}
   .comentario:last-child{border-bottom:0}
   .comentario .meta{font-size:12px;color:var(--muted);margin-bottom:4px}
   .barra-acciones{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-  .buscar{min-width:260px}
+  .buscar{flex:1 1 220px;min-width:0}
   .login{max-width:360px;margin:80px auto;background:var(--tarjeta);border:1px solid var(--borde);padding:24px;border-radius:10px}
   .login h2{margin:0 0 6px}
   .err{color:var(--rojo);min-height:1.2em;font-size:13px}
@@ -76,28 +78,37 @@
   body.presentando .card{padding:20px}
   body.presentando .charts .card{height:62vh}
 
+  /* Celular */
   @media (max-width:640px){
     header{padding:12px 14px}
     header h1{font-size:16px}
-    main{padding:12px}
-    h2{font-size:14px;margin:22px 0 8px}
-    .filtros{gap:8px;padding:10px}
-    .filtros label{flex:1 1 140px}
+    header p{font-size:12px}
+    main{padding:12px 10px}
+    h2{font-size:15px;margin:22px 0 8px}
+    .filtros{gap:8px;padding:10px;display:grid;grid-template-columns:1fr 1fr}
+    .filtros label{width:100%}
     .filtros input,.filtros select{width:100%}
-    .filtros button{flex:1 1 100%}
-    .tab{flex:1;padding:10px 6px;font-size:13px}
+    .filtros button{grid-column:1 / -1;width:100%}
+    .estado-txt{grid-column:1 / -1;align-self:auto}
+    .tabs{margin-top:14px}
+    .tab{flex:1;padding:10px 4px;font-size:14px}
     .grid-kpi{grid-template-columns:1fr 1fr;gap:8px}
-    .valor{font-size:22px}
-    .charts{grid-template-columns:1fr}
-    .charts .card{height:280px}
     .card{padding:12px}
-    table{display:block;overflow-x:auto;white-space:nowrap}
-    th,td{padding:8px 9px;font-size:12px}
-    .buscar{min-width:0;width:100%}
+    .valor{font-size:22px}
+    .sub{font-size:11px}
+    .charts{grid-template-columns:1fr;gap:10px}
+    .charts .card{height:270px}
+    th,td{padding:8px 9px;font-size:12px;white-space:nowrap}
+    .prioridad{font-size:13px}
+    .buscar{flex-basis:100%}
     .barra-acciones button{width:100%}
     .login{margin:40px 14px}
     .salir{top:8px;right:8px}
     .contador{bottom:8px;right:8px}
+    body.presentando main{padding:12px}
+    body.presentando .grid-kpi{grid-template-columns:1fr 1fr}
+    body.presentando .valor{font-size:40px}
+    body.presentando .charts .card{height:58vh}
   }
 
   @media (prefers-color-scheme: dark){
@@ -161,26 +172,28 @@
       </div>
 
       <div class="slide">
-        <h2>Qué mejorar primero</h2>
+        <h2>¿Qué mejorar primero?</h2>
         <div class="prioridad" id="prioridad">-</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Aspecto</th>
-              <th class="num">Puntaje (de 1 a 5)</th>
-              <th class="num">Local 1</th>
-              <th class="num">Local 2</th>
-              <th class="num">% que quedó insatisfecho</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody id="tablaDim"></tbody>
-        </table>
+        <div class="tabla-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Aspecto</th>
+                <th class="num">Puntaje (de 1 a 5)</th>
+                <th class="num">Local 1</th>
+                <th class="num">Local 2</th>
+                <th class="num">% que quedó insatisfecho</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tablaDim"></tbody>
+          </table>
+        </div>
         <p class="nota">Ordenado de menor a mayor puntaje. "Insatisfecho" significa que el cliente puso 1 o 2. El estado se decide según el puntaje (ver al final de la página).</p>
       </div>
 
       <div class="slide">
-        <h2>Cómo se reparten las respuestas</h2>
+        <h2>¿Cómo se reparten las respuestas?</h2>
         <div class="charts">
           <div class="card"><canvas id="cDist"></canvas></div>
           <div class="card"><canvas id="cTrend"></canvas></div>
@@ -201,7 +214,7 @@
         <div class="card" id="comentarios"></div>
       </div>
 
-      <h2>Cómo se decide el color</h2>
+      <h2>¿Cómo se decide el color?</h2>
       <div class="card">
         <p class="nota" style="margin:0"><strong>Satisfacción general y cada aspecto:</strong> verde desde 4.20, amarillo desde 3.50, rojo debajo de 3.50.<br>
         <strong>¿Recomendarían el local?:</strong> verde desde 50, amarillo desde 0, rojo debajo de 0. Se calcula restando los clientes que no lo recomendarían a los que sí.<br>
@@ -213,7 +226,7 @@
     <!-- PESTAÑA COMUNIDAD -->
     <section id="tab-comunidad" hidden>
       <div class="slide">
-        <h2>Quiénes forman la comunidad</h2>
+        <h2>¿Quiénes forman la comunidad?</h2>
         <div class="grid-kpi">
           <div class="card"><h3>Personas con correo</h3><div class="valor" id="cKContactos">-</div><div class="sub" id="cKContactosSub"></div></div>
           <div class="card"><h3>Respuestas que dejaron correo</h3><div class="valor" id="cKRespuestas">-</div><div class="sub" id="cKRespuestasSub"></div></div>
@@ -221,7 +234,7 @@
       </div>
 
       <div class="slide">
-        <h2>Qué les gusta para la merienda</h2>
+        <h2>¿Qué les gusta para la merienda?</h2>
         <div class="card" style="height:340px"><canvas id="cMerienda"></canvas></div>
         <p class="nota">Cada respuesta puede tener más de una opción. El gráfico cuenta cada opción elegida.</p>
       </div>
@@ -277,8 +290,8 @@ const COLOR = {
   barra:  "#8aa4c0"
 };
 
-const REFRESCO_MS = 5 * 60 * 1000;   // actualización automática: 5 minutos
-const PRESENTACION_MS = 12 * 1000;   // cambio de diapositiva: 12 segundos
+const REFRESCO_MS = 5 * 60 * 1000;
+const PRESENTACION_MS = 12 * 1000;
 
 let CLAVE = "";
 let DATOS = [];
@@ -289,6 +302,7 @@ let presActiva = false, presIdx = 0, presTimer = null;
 const charts = {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const esCelular = () => window.matchMedia("(max-width:640px)").matches;
 
 function normalizar(s){ return String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim(); }
 function indices(enc, fn){ return enc.map((h,i)=> fn(normalizar(h)) ? i : -1).filter(i => i >= 0); }
@@ -301,7 +315,6 @@ function pct(n, d){ return d ? Math.round(n / d * 100) : null; }
 function pad2(n){ return String(n).padStart(2,"0"); }
 function horaActual(){ return new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}); }
 
-// Fecha/hora en horario de Argentina. Acepta ISO (UTC) o dd/mm/yyyy hh:mm:ss
 function fechaHora(v){
   const s = String(v).trim();
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
@@ -367,7 +380,7 @@ function filtrar(){
 
 function grafico(id, config){
   if (charts[id]) charts[id].destroy();
-  const base = { maintainAspectRatio:false, plugins:{ legend:{ labels:{ boxWidth:12, font:{ size:12 } } } } };
+  const base = { maintainAspectRatio:false, responsive:true, plugins:{ legend:{ labels:{ boxWidth:12, font:{ size: esCelular() ? 11 : 12 } } } } };
   charts[id] = new Chart($(id), { ...config, options: deepMerge(base, config.options || {}) });
 }
 function deepMerge(a, b){
@@ -462,9 +475,9 @@ function renderTablero(f, base){
       indexAxis:"y",
       scales:{
         x:{ stacked:true, max:100, title:{ display:true, text:"% de clientes" } },
-        y:{ stacked:true }
+        y:{ stacked:true, ticks:{ font:{ size: esCelular() ? 10 : 12 } } }
       },
-      plugins:{ title:{ display:true, text:"Cómo calificó cada cliente cada aspecto" } }
+      plugins:{ title:{ display:true, text:"¿Cómo calificó cada cliente cada aspecto?" } }
     }
   });
 
@@ -478,7 +491,7 @@ function renderTablero(f, base){
     data:{ labels: dias, datasets },
     options:{
       scales:{ y: escala15 },
-      plugins:{ title:{ display:true, text:"Satisfacción general día por día" } }
+      plugins:{ title:{ display:true, text:"¿Cómo viene la satisfacción día por día?" } }
     }
   });
 
@@ -488,14 +501,14 @@ function renderTablero(f, base){
   grafico("cMotivo", {
     type:"doughnut",
     data:{ labels: motivos, datasets:[{ data: motivos.map(m => porMotivo[m]), backgroundColor: ["#1e3a5f","#4f6d8f","#8aa4c0","#c3d3e5","#64748b","#e2e8f0"] }] },
-    options:{ plugins:{ title:{ display:true, text:"Motivo de la visita" }, legend:{ position:"right" } } }
+    options:{ plugins:{ title:{ display:true, text:"¿Por qué vinieron?" }, legend:{ position: esCelular() ? "bottom" : "right" } } }
   });
 
   const horas = Array.from({length:24}, (_,i) => i);
   grafico("cHora", {
     type:"bar",
     data:{ labels: horas.map(h => h + "h"), datasets:[{ label:"Respuestas", data: horas.map(h => f.filter(r => r.hora === h).length), backgroundColor: COLOR.barra }] },
-    options:{ plugins:{ title:{ display:true, text:"Cuántas respuestas llegan por hora (Argentina)" } } }
+    options:{ plugins:{ title:{ display:true, text:"¿A qué hora llegan más respuestas? (Argentina)" } } }
   });
 
   const coment = f.filter(r => r.comentario)
@@ -536,7 +549,7 @@ function renderComunidad(f){
   grafico("cMerienda", {
     type:"bar",
     data:{ labels: top.map(t => t[0]), datasets:[{ label:"Veces elegido", data: top.map(t => t[1]), backgroundColor: COLOR.local1 }] },
-    options:{ indexAxis:"y", plugins:{ title:{ display:true, text:"Lo que más eligen para la merienda ideal" } } }
+    options:{ indexAxis:"y", plugins:{ title:{ display:true, text:"¿Qué se elige más para la merienda ideal?" } } }
   });
 
   renderTablaContactos();
@@ -649,6 +662,9 @@ document.querySelectorAll(".tab").forEach(b => {
     Object.values(charts).forEach(c => c.resize());
   };
 });
+
+// Si cambia el tamaño de la pantalla (girar el celular), redibujar
+window.addEventListener("resize", () => { if (DATOS.length) render(); });
 
 $("entrar").onclick = () => { CLAVE = $("clave").value; $("loginErr").textContent = ""; cargar(true); };
 $("clave").addEventListener("keydown", e => { if (e.key === "Enter") $("entrar").click(); });
