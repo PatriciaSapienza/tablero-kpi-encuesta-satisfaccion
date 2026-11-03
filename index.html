@@ -60,6 +60,46 @@
   .login{max-width:360px;margin:80px auto;background:var(--tarjeta);border:1px solid var(--borde);padding:24px;border-radius:10px}
   .login h2{margin:0 0 6px}
   .err{color:var(--rojo);min-height:1.2em;font-size:13px}
+
+  /* Modo presentación */
+  .salir{position:fixed;top:12px;right:16px;z-index:10;background:#fff;color:var(--acento);border:1px solid var(--borde)}
+  .contador{position:fixed;bottom:12px;right:16px;z-index:10;background:rgba(0,0,0,.55);color:#fff;padding:4px 10px;border-radius:999px;font-size:13px}
+  @keyframes entra{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  body.presentando header, body.presentando .filtros, body.presentando .tabs{display:none}
+  body.presentando #tab-tablero > :not(.slide), body.presentando #tab-comunidad > :not(.slide){display:none}
+  body.presentando .slide{display:none}
+  body.presentando .slide.activa{display:block;animation:entra .5s ease}
+  body.presentando main{max-width:1100px;padding:24px 32px}
+  body.presentando h2{font-size:22px;margin-top:0}
+  body.presentando .valor{font-size:52px}
+  body.presentando .grid-kpi{grid-template-columns:repeat(2,1fr)}
+  body.presentando .card{padding:20px}
+  body.presentando .charts .card{height:62vh}
+
+  @media (max-width:640px){
+    header{padding:12px 14px}
+    header h1{font-size:16px}
+    main{padding:12px}
+    h2{font-size:14px;margin:22px 0 8px}
+    .filtros{gap:8px;padding:10px}
+    .filtros label{flex:1 1 140px}
+    .filtros input,.filtros select{width:100%}
+    .filtros button{flex:1 1 100%}
+    .tab{flex:1;padding:10px 6px;font-size:13px}
+    .grid-kpi{grid-template-columns:1fr 1fr;gap:8px}
+    .valor{font-size:22px}
+    .charts{grid-template-columns:1fr}
+    .charts .card{height:280px}
+    .card{padding:12px}
+    table{display:block;overflow-x:auto;white-space:nowrap}
+    th,td{padding:8px 9px;font-size:12px}
+    .buscar{min-width:0;width:100%}
+    .barra-acciones button{width:100%}
+    .login{margin:40px 14px}
+    .salir{top:8px;right:8px}
+    .contador{bottom:8px;right:8px}
+  }
+
   @media (prefers-color-scheme: dark){
     :root{--fondo:#111827;--tarjeta:#1f2937;--texto:#f3f4f6;--muted:#9ca3af;--borde:#374151;--acento:#9ec3e6;
       --verde-bg:#14331f;--verde:#86d19c;--amarillo-bg:#3a2e10;--amarillo:#f2cf73;--rojo-bg:#3d1c19;--rojo:#f1a59e;--neutro-bg:#2b2f36;--neutro-txt:#c7ccd4}
@@ -68,6 +108,7 @@
     .tab.activo{color:var(--acento)}
     th{background:#111827}
     input,select{background:#111827;color:#f3f4f6;border-color:#4b5563}
+    .salir{color:var(--acento);background:#1f2937}
   }
 </style>
 </head>
@@ -98,6 +139,7 @@
       <label>Desde <input type="date" id="desde"></label>
       <label>Hasta <input type="date" id="hasta"></label>
       <button id="actualizar">Actualizar datos</button>
+      <button id="presentar">Modo presentación</button>
       <span id="estado" class="estado-txt"></span>
     </div>
 
@@ -108,46 +150,56 @@
 
     <!-- PESTAÑA TABLERO -->
     <section id="tab-tablero">
-      <h2>Estado general</h2>
-      <div class="grid-kpi">
-        <div class="card"><h3>Respuestas</h3><div class="valor" id="kTotal">-</div><div class="sub" id="kTotalSub"></div></div>
-        <div class="card"><h3>Satisfacción general <span class="nota">(de 1 a 5)</span></h3><div class="valor" id="kIndice">-</div><div class="sub" id="kIndiceEst"></div></div>
-        <div class="card"><h3>¿Recomendarían el local? <span class="nota">(de -100 a 100)</span></h3><div class="valor" id="kNps">-</div><div class="sub" id="kNpsEst"></div></div>
-        <div class="card"><h3>Clientes muy satisfechos <span class="nota">(% que dio 4 o 5)</span></h3><div class="valor" id="kTop2">-</div><div class="sub" id="kTop2Est"></div></div>
+      <div class="slide">
+        <h2>Estado general</h2>
+        <div class="grid-kpi">
+          <div class="card"><h3>Respuestas</h3><div class="valor" id="kTotal">-</div><div class="sub" id="kTotalSub"></div></div>
+          <div class="card"><h3>Satisfacción general <span class="nota">(de 1 a 5)</span></h3><div class="valor" id="kIndice">-</div><div class="sub" id="kIndiceEst"></div></div>
+          <div class="card"><h3>¿Recomendarían el local? <span class="nota">(de -100 a 100)</span></h3><div class="valor" id="kNps">-</div><div class="sub" id="kNpsEst"></div></div>
+          <div class="card"><h3>Clientes muy satisfechos <span class="nota">(% que dio 4 o 5)</span></h3><div class="valor" id="kTop2">-</div><div class="sub" id="kTop2Est"></div></div>
+        </div>
       </div>
 
-      <h2>Qué mejorar primero</h2>
-      <div class="prioridad" id="prioridad">-</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Aspecto</th>
-            <th class="num">Puntaje (de 1 a 5)</th>
-            <th class="num">Local 1</th>
-            <th class="num">Local 2</th>
-            <th class="num">% que quedó insatisfecho</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody id="tablaDim"></tbody>
-      </table>
-      <p class="nota">Ordenado de menor a mayor puntaje. "Insatisfecho" significa que el cliente puso 1 o 2. El estado se decide según el puntaje (ver al final de la página).</p>
-
-      <h2>Cómo se reparten las respuestas</h2>
-      <div class="charts">
-        <div class="card"><canvas id="cDist"></canvas></div>
-        <div class="card"><canvas id="cTrend"></canvas></div>
-      </div>
-      <p class="nota">Rojo = insatisfecho (1 o 2), gris = término medio (3), verde = satisfecho (4 o 5). En el gráfico de la derecha, cuanto más alto, mejor.</p>
-
-      <h2>Contexto de visita</h2>
-      <div class="charts">
-        <div class="card"><canvas id="cMotivo"></canvas></div>
-        <div class="card"><canvas id="cHora"></canvas></div>
+      <div class="slide">
+        <h2>Qué mejorar primero</h2>
+        <div class="prioridad" id="prioridad">-</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Aspecto</th>
+              <th class="num">Puntaje (de 1 a 5)</th>
+              <th class="num">Local 1</th>
+              <th class="num">Local 2</th>
+              <th class="num">% que quedó insatisfecho</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tablaDim"></tbody>
+        </table>
+        <p class="nota">Ordenado de menor a mayor puntaje. "Insatisfecho" significa que el cliente puso 1 o 2. El estado se decide según el puntaje (ver al final de la página).</p>
       </div>
 
-      <h2>Comentarios recientes</h2>
-      <div class="card" id="comentarios"></div>
+      <div class="slide">
+        <h2>Cómo se reparten las respuestas</h2>
+        <div class="charts">
+          <div class="card"><canvas id="cDist"></canvas></div>
+          <div class="card"><canvas id="cTrend"></canvas></div>
+        </div>
+        <p class="nota">Rojo = insatisfecho (1 o 2), gris = término medio (3), verde = satisfecho (4 o 5). En el gráfico de la derecha, cuanto más alto, mejor.</p>
+      </div>
+
+      <div class="slide">
+        <h2>Contexto de visita</h2>
+        <div class="charts">
+          <div class="card"><canvas id="cMotivo"></canvas></div>
+          <div class="card"><canvas id="cHora"></canvas></div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <h2>Comentarios recientes</h2>
+        <div class="card" id="comentarios"></div>
+      </div>
 
       <h2>Cómo se decide el color</h2>
       <div class="card">
@@ -160,15 +212,19 @@
 
     <!-- PESTAÑA COMUNIDAD -->
     <section id="tab-comunidad" hidden>
-      <h2>Quiénes forman la comunidad</h2>
-      <div class="grid-kpi">
-        <div class="card"><h3>Personas con correo</h3><div class="valor" id="cKContactos">-</div><div class="sub" id="cKContactosSub"></div></div>
-        <div class="card"><h3>Respuestas que dejaron correo</h3><div class="valor" id="cKRespuestas">-</div><div class="sub" id="cKRespuestasSub"></div></div>
+      <div class="slide">
+        <h2>Quiénes forman la comunidad</h2>
+        <div class="grid-kpi">
+          <div class="card"><h3>Personas con correo</h3><div class="valor" id="cKContactos">-</div><div class="sub" id="cKContactosSub"></div></div>
+          <div class="card"><h3>Respuestas que dejaron correo</h3><div class="valor" id="cKRespuestas">-</div><div class="sub" id="cKRespuestasSub"></div></div>
+        </div>
       </div>
 
-      <h2>Qué les gusta para la merienda</h2>
-      <div class="card" style="height:340px"><canvas id="cMerienda"></canvas></div>
-      <p class="nota">Cada respuesta puede tener más de una opción. El gráfico cuenta cada opción elegida.</p>
+      <div class="slide">
+        <h2>Qué les gusta para la merienda</h2>
+        <div class="card" style="height:340px"><canvas id="cMerienda"></canvas></div>
+        <p class="nota">Cada respuesta puede tener más de una opción. El gráfico cuenta cada opción elegida.</p>
+      </div>
 
       <h2>Lista de contactos</h2>
       <div class="barra-acciones">
@@ -187,6 +243,9 @@
     </section>
   </main>
 </div>
+
+<button id="salirPres" class="salir" hidden>Salir ✕</button>
+<div id="contador" class="contador" hidden></div>
 
 <script>
 const ENDPOINTS = {
@@ -218,9 +277,15 @@ const COLOR = {
   barra:  "#8aa4c0"
 };
 
+const REFRESCO_MS = 5 * 60 * 1000;   // actualización automática: 5 minutos
+const PRESENTACION_MS = 12 * 1000;   // cambio de diapositiva: 12 segundos
+
 let CLAVE = "";
 let DATOS = [];
 let CONTACTOS = [];
+let TAB = "tablero";
+let refrescoTimer = null;
+let presActiva = false, presIdx = 0, presTimer = null;
 const charts = {};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -234,6 +299,7 @@ function redondo(v){ return v == null ? null : +v.toFixed(2); }
 function fmt(v){ return v == null ? "-" : v.toFixed(2); }
 function pct(n, d){ return d ? Math.round(n / d * 100) : null; }
 function pad2(n){ return String(n).padStart(2,"0"); }
+function horaActual(){ return new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}); }
 
 // Fecha/hora en horario de Argentina. Acepta ISO (UTC) o dd/mm/yyyy hh:mm:ss
 function fechaHora(v){
@@ -446,7 +512,6 @@ function renderTablero(f, base){
 function renderComunidad(f){
   const conCorreo = f.filter(r => r.correo.includes("@"));
 
-  // Una persona = un correo. Se queda con la respuesta más reciente.
   const ultimoPorCorreo = {};
   [...conCorreo]
     .sort((a,b) => (a.dia + pad2(a.hora)).localeCompare(b.dia + pad2(b.hora)))
@@ -459,7 +524,6 @@ function renderComunidad(f){
   $("cKRespuestas").textContent = conCorreo.length;
   $("cKRespuestasSub").textContent = f.length ? `${pct(conCorreo.length, f.length)}% de las respuestas` : "";
 
-  // Meriendas: cada opción separada por coma cuenta una vez
   const cuenta = {};
   f.forEach(r => {
     if (!r.merienda) return;
@@ -502,6 +566,57 @@ function descargarCSV(){
   URL.revokeObjectURL(a.href);
 }
 
+// MODO PRESENTACIÓN
+function slidesActuales(){ return [...document.querySelectorAll(`#tab-${TAB} .slide`)]; }
+function mostrarSlide(i){
+  const s = slidesActuales();
+  if (!s.length) return;
+  presIdx = (i + s.length) % s.length;
+  s.forEach((el, k) => el.classList.toggle("activa", k === presIdx));
+  $("contador").textContent = `${presIdx + 1} / ${s.length}`;
+  Object.values(charts).forEach(c => c.resize());
+}
+function siguiente(){ mostrarSlide(presIdx + 1); }
+function anterior(){ mostrarSlide(presIdx - 1); }
+
+function iniciarPresentacion(){
+  presActiva = true;
+  document.body.classList.add("presentando");
+  $("contador").hidden = false;
+  $("salirPres").hidden = false;
+  mostrarSlide(0);
+  clearInterval(presTimer);
+  presTimer = setInterval(siguiente, PRESENTACION_MS);
+  const el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+}
+
+function salirPresentacion(){
+  if (!presActiva) return;
+  presActiva = false;
+  clearInterval(presTimer);
+  document.body.classList.remove("presentando");
+  document.querySelectorAll(".slide").forEach(s => s.classList.remove("activa"));
+  $("contador").hidden = true;
+  $("salirPres").hidden = true;
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  Object.values(charts).forEach(c => c.resize());
+}
+
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement && presActiva) salirPresentacion();
+});
+document.addEventListener("keydown", e => {
+  if (!presActiva) return;
+  if (e.key === "ArrowRight") siguiente();
+  else if (e.key === "ArrowLeft") anterior();
+  else if (e.key === "Escape") salirPresentacion();
+});
+document.addEventListener("click", e => {
+  if (presActiva && !e.target.closest("button")) siguiente();
+});
+
+// CARGA DE DATOS Y ACTUALIZACIÓN AUTOMÁTICA
 async function cargar(esLogin){
   $("estado").textContent = "Cargando datos...";
   try {
@@ -515,21 +630,22 @@ async function cargar(esLogin){
     $("login").hidden = true;
     $("app").hidden = false;
     $("clave").value = "";
-    $("estado").textContent = `Datos cargados: ${DATOS.length} respuestas`;
+    $("estado").textContent = `${DATOS.length} respuestas · actualizado ${horaActual()} · se actualiza solo cada 5 min`;
     render();
+    if (!refrescoTimer) refrescoTimer = setInterval(() => cargar(false), REFRESCO_MS);
   } catch (e) {
     if (esLogin) $("loginErr").textContent = e.message === "no autorizado" ? "Clave incorrecta." : "No se pudieron cargar los datos: " + e.message;
-    else $("estado").textContent = "Error: " + e.message;
+    else $("estado").textContent = "No se pudo actualizar (" + horaActual() + "). Reintenta en 5 min o toca Actualizar datos.";
   }
 }
 
 // Pestañas
 document.querySelectorAll(".tab").forEach(b => {
   b.onclick = () => {
+    TAB = b.dataset.tab;
     document.querySelectorAll(".tab").forEach(x => x.classList.toggle("activo", x === b));
-    $("tab-tablero").hidden = b.dataset.tab !== "tablero";
-    $("tab-comunidad").hidden = b.dataset.tab !== "comunidad";
-    // Los gráficos ocultos se dibujan mal: los redibujamos al mostrarse
+    $("tab-tablero").hidden = TAB !== "tablero";
+    $("tab-comunidad").hidden = TAB !== "comunidad";
     Object.values(charts).forEach(c => c.resize());
   };
 });
@@ -537,6 +653,8 @@ document.querySelectorAll(".tab").forEach(b => {
 $("entrar").onclick = () => { CLAVE = $("clave").value; $("loginErr").textContent = ""; cargar(true); };
 $("clave").addEventListener("keydown", e => { if (e.key === "Enter") $("entrar").click(); });
 $("actualizar").onclick = () => cargar(false);
+$("presentar").onclick = iniciarPresentacion;
+$("salirPres").onclick = salirPresentacion;
 $("descargar").onclick = descargarCSV;
 $("buscar").addEventListener("input", renderTablaContactos);
 ["local","desde","hasta"].forEach(id => $(id).addEventListener("change", render));
