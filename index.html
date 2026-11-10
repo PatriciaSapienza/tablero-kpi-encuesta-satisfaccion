@@ -3,27 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tablero de satisfacción</title>
+<title>Tablero de experiencias</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>Chart.defaults.color = "#000";</script>
 <style>
   :root{
-    --fondo:#ffffff; --tarjeta:#ffffff; --texto:#1f2937; --muted:#5b6472; --borde:#d1d5db;
+    --fondo:#ffffff; --tarjeta:#ffffff; --texto:#000000; --muted:#000000; --borde:#d1d5db;
     --acento:#1e3a5f;
-    --verde:#166534; --verde-bg:#e8f3ec;
-    --amarillo:#854d0e; --amarillo-bg:#fbf3dc;
-    --rojo:#991b1b; --rojo-bg:#fbe9e7;
+    --verde:#15803d; --verde-bg:#16a34a;
+    --amarillo:#422006; --amarillo-bg:#facc15;
+    --rojo:#b91c1c; --rojo-bg:#dc2626;
     --neutro-txt:#4b5563; --neutro-bg:#f0f1f3;
   }
 
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;background:var(--fondo);color:var(--texto);font-size:14px;overflow-x:hidden}
-  header{background:var(--tarjeta);border-bottom:1px solid var(--borde);padding:16px 24px}
-  header h1{margin:0;font-size:18px;font-weight:600;color:var(--acento)}
+  header{background:var(--tarjeta);border-bottom:1px solid var(--borde);padding:16px 24px;text-align:center}
+  header h1{margin:0;font-size:26px;font-weight:700;color:#000}
   header p{margin:4px 0 0;color:var(--muted);font-size:13px}
-  main{padding:20px 24px;max-width:1200px;margin:auto;min-width:0}
-  h2{font-size:15px;font-weight:600;margin:28px 0 10px;color:var(--acento)}
-  .filtros{display:flex;gap:12px;flex-wrap:wrap;align-items:end;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:12px 14px}
+  main{padding:20px 24px;width:100%;max-width:1200px;margin:0 auto;min-width:0}
+  h2{font-size:20px;font-weight:700;margin:32px 0 12px;color:#000;text-align:center}
+  .filtros{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:end;background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:12px 14px}
   .filtros label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
   .fechas{border:0;padding:0;margin:0;display:flex;gap:12px;flex-wrap:wrap;min-width:0}
   .fechas legend{font-size:12px;color:var(--muted);padding:0;margin-bottom:4px}
@@ -33,19 +34,19 @@
   button{background:var(--acento);color:#fff;border:0;cursor:pointer}
   button:hover{opacity:.9}
   .estado-txt{color:var(--rojo);font-size:12px;align-self:center}
-  .tabs{display:flex;gap:4px;margin-top:20px;border-bottom:1px solid var(--borde)}
-  .tab{background:transparent;color:var(--muted);border:0;border-bottom:2px solid transparent;border-radius:0;padding:10px 16px;font-weight:600}
-  .tab.activo{color:var(--acento);border-bottom-color:var(--acento)}
+  .tabs{display:flex;justify-content:center;gap:4px;margin-top:20px;border-bottom:1px solid var(--borde)}
+  .tab{background:transparent;color:#000;border:0;border-bottom:2px solid transparent;border-radius:0;padding:10px 16px;font-weight:600}
+  .tab.activo{color:#000;font-weight:700;border-bottom-color:var(--acento)}
   .tab:hover{opacity:1}
   .grid-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
   .card{background:var(--tarjeta);border:1px solid var(--borde);border-radius:10px;padding:14px 16px;position:relative;min-width:0}
-  .card h3{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.03em}
+  .card h3{margin:0 0 8px;font-size:15px;color:#000;font-weight:700}
   .valor{font-size:28px;font-weight:600;line-height:1.1;color:var(--texto)}
   .sub{font-size:12px;color:var(--muted);margin-top:6px}
-  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;margin-left:6px;vertical-align:middle}
-  .verde{background:var(--verde-bg);color:var(--verde)}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin-left:6px;vertical-align:middle}
+  .verde{background:var(--verde-bg);color:#fff}
   .amarillo{background:var(--amarillo-bg);color:var(--amarillo)}
-  .rojo{background:var(--rojo-bg);color:var(--rojo)}
+  .rojo{background:var(--rojo-bg);color:#fff}
   .neutro{background:var(--neutro-bg);color:var(--neutro-txt)}
   .tabla-wrap{width:100%;max-width:100%;overflow-x:auto;border:1px solid var(--borde);border-radius:10px;background:var(--tarjeta)}
   table{width:100%;border-collapse:collapse;background:var(--tarjeta)}
@@ -59,24 +60,24 @@
   .card.ancho{height:340px}
   canvas{max-width:100%}
   .nota{font-size:12px;color:var(--muted);margin:8px 0 0}
-  details.card summary{cursor:pointer;font-weight:600;color:var(--acento);list-style-position:inside}
+  details.card summary{cursor:pointer;font-weight:600;color:#000;list-style-position:inside}
   .lista-comentarios{max-height:420px;overflow-y:auto;margin-top:12px;padding-right:6px}
   .comentario{border-bottom:1px solid var(--borde);padding:10px 0}
   .comentario:last-child{border-bottom:0}
   .comentario .meta{font-size:12px;color:var(--muted);margin-bottom:4px}
   .barra-acciones{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
   .buscar{flex:1 1 220px;min-width:0}
-  .login{max-width:360px;margin:80px auto;background:var(--tarjeta);border:1px solid var(--borde);padding:24px;border-radius:10px}
+  .login{max-width:360px;width:calc(100% - 32px);margin:80px auto;text-align:center;background:var(--tarjeta);border:1px solid var(--borde);padding:24px;border-radius:10px}
   .login h2{margin:0 0 6px}
   .err{color:var(--rojo);min-height:1.2em;font-size:13px}
 
   /* Celular */
   @media (max-width:640px){
     header{padding:12px 14px}
-    header h1{font-size:16px}
+    header h1{font-size:21px}
     header p{font-size:12px}
     main{padding:12px 10px}
-    h2{font-size:15px;margin:22px 0 8px}
+    h2{font-size:18px;margin:26px 0 10px}
     .filtros{gap:8px;padding:10px;display:grid;grid-template-columns:1fr 1fr}
     .filtros > label{grid-column:1 / -1}
     .fechas{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -85,7 +86,7 @@
     .filtros button{grid-column:1 / -1;width:100%}
     .estado-txt{grid-column:1 / -1;align-self:auto}
     .tabs{margin-top:14px}
-    .tab{flex:1;padding:10px 4px;font-size:14px}
+    .tab{flex:1;padding:10px 4px;font-size:15px}
     .grid-kpi{grid-template-columns:1fr 1fr;gap:8px}
     .card{padding:12px}
     .valor{font-size:22px}
@@ -104,7 +105,7 @@
 <body>
 
 <div id="login" class="login">
-  <h2>Tablero de satisfacción</h2>
+  <h2>Tablero de experiencias</h2>
   <p class="nota">Ingresá la clave para ver el tablero.</p>
   <input id="clave" type="password" placeholder="Clave" style="width:100%">
   <p><button id="entrar" style="width:100%;margin-top:10px">Entrar</button></p>
@@ -113,7 +114,7 @@
 
 <div id="app" hidden>
   <header>
-    <h1>Encuesta de experiencia · Tablero para decisiones</h1>
+    <h1>Tablero de experiencias</h1>
     <p>Cada pregunta se califica de 1 (muy malo) a 5 (excelente). <span id="actualizado"></span></p>
   </header>
   <main>
