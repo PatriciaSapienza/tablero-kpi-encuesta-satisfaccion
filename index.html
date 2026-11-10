@@ -453,6 +453,13 @@ function renderTablero(f, base){
     : `<p class="nota" style="margin:0">Todavía no hay comentarios en el período seleccionado.</p>`;
 }
 
+function gradiente(i, n){
+  const oscuro = [30,58,95], claro = [195,211,229];
+  const t = n <= 1 ? 0 : i / (n - 1);
+  const c = oscuro.map((v,k) => Math.round(v + (claro[k] - v) * t));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
 function renderComunidad(f){
   const conCorreo = f.filter(r => r.correo.includes("@"));
 
@@ -479,7 +486,7 @@ function renderComunidad(f){
   const top = Object.entries(cuenta).sort((a,b) => b[1] - a[1]).slice(0, 10);
   grafico("cMerienda", {
     type:"bar",
-    data:{ labels: top.map(t => t[0]), datasets:[{ label:"Veces elegido", data: top.map(t => t[1]), backgroundColor: COLOR.local1 }] },
+    data:{ labels: top.map(t => t[0]), datasets:[{ label:"Veces elegido", data: top.map(t => t[1]), backgroundColor: top.map((_,i) => gradiente(i, top.length)) }] },
     options:{ indexAxis:"y", plugins:{ title:{ display:true, text:"¿Qué se elige más para la merienda ideal?" } } }
   });
 
